@@ -1,6 +1,7 @@
 package api
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -8,6 +9,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	Action "github.com/romarq/visualtez-testing/internal/action"
+	Mockup "github.com/romarq/visualtez-testing/internal/business"
+	Config "github.com/romarq/visualtez-testing/internal/config"
 	Logger "github.com/romarq/visualtez-testing/internal/logger"
 	"github.com/tidwall/gjson"
 )
@@ -17,10 +20,16 @@ type TestRequest struct {
 	Action interface{}       `json:"action"`
 }
 
-type TestingAPI struct{}
+type TestingAPI struct {
+	Config Config.Config
+	Mockup Mockup.Mockup
+}
 
-func InitTestingAPI() TestingAPI {
-	api := TestingAPI{}
+func InitTestingAPI(config Config.Config) TestingAPI {
+	api := TestingAPI{
+		Config: config,
+		Mockup: Mockup.InitMockup(config),
+	}
 	return api
 }
 
@@ -38,7 +47,22 @@ func (api *TestingAPI) RunTest(ctx echo.Context) error {
 		return HTTPError(ctx, http.StatusBadRequest, err.Error())
 	}
 
-	Logger.Debug("%v", actions...)
+	prime, err := rand.Prime(rand.Reader, 64)
+	if err != nil {
+		return HTTPError(ctx, http.StatusInternalServerError, "Something went wrong.")
+	}
+
+	taskID := fmt.Sprintf("task_%d", prime)
+	// Teardown on exit
+	defer api.Mockup.Teardown(taskID)
+
+	// Boostrap mockup
+	err = api.Mockup.Bootstrap(taskID)
+	if err != nil {
+		return HTTPError(ctx, http.StatusInternalServerError, "Could not bootstrap test environment.")
+	}
+
+	Logger.Debug("%s %v", fmt.Sprintf("%d", prime), actions)
 
 	return nil
 }

@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"flag"
@@ -12,14 +12,20 @@ import (
 
 // Config holds API configurations
 type Config struct {
-	Port string    `yaml:"port,omitempty"`
-	Log  LogConfig `yaml:"log,omitempty"`
+	Port  string      `yaml:"port,omitempty"`
+	Tezos TezosConfig `yaml:"tezos,omitempty"`
+	Log   LogConfig   `yaml:"log,omitempty"`
 }
 
 // LogConfig holds logging configuration
 type LogConfig struct {
 	Location string `yaml:"location,omitempty"`
 	Level    string `yaml:"level,omitempty"`
+}
+
+type TezosConfig struct {
+	BaseDirectory   string `yaml:"dir,omitempty"`
+	DefaultProtocol string `yaml:"default_protocol,omitempty"`
 }
 
 // EnvironmentProperty - Known environment properties

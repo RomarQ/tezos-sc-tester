@@ -13,6 +13,7 @@ import (
 	echoSwagger "github.com/swaggo/echo-swagger"
 
 	API "github.com/romarq/visualtez-testing/internal/api"
+	Config "github.com/romarq/visualtez-testing/internal/config"
 	LOG "github.com/romarq/visualtez-testing/internal/logger"
 
 	_ "github.com/romarq/visualtez-testing/docs"
@@ -24,7 +25,7 @@ import (
 // @description API documentation
 // @BasePath /
 func main() {
-	configuration := GetConfig()
+	configuration := Config.GetConfig()
 	LOG.SetupLogger(configuration.Log.Location, configuration.Log.Level)
 
 	LOG.Info("Initializing API...")
@@ -55,7 +56,7 @@ func main() {
 		},
 	})
 
-	testingAPI := API.InitTestingAPI()
+	testingAPI := API.InitTestingAPI(configuration)
 
 	// API Documentation
 	e.GET("/doc/*", echoSwagger.WrapHandler)
@@ -65,7 +66,7 @@ func main() {
 
 	// Start REST API Service
 	go func() {
-		if err := e.Start(":" + GetConfig().Port); err != nil && err != http.ErrServerClosed {
+		if err := e.Start(":" + configuration.Port); err != nil && err != http.ErrServerClosed {
 			LOG.Fatal("Shutting down REST API service: %v", err)
 		}
 	}()

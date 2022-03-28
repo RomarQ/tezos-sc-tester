@@ -1,4 +1,7 @@
 port: 5000
+tezos:
+  dir: tezos-bin
+  default_protocol: ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK
 log:
   location: visualtez-testing.log
   level: debug
