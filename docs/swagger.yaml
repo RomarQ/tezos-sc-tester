@@ -1,0 +1,31 @@
+basePath: /
+definitions:
+  api.Error:
+    properties:
+      code:
+        example: 409
+        type: integer
+      message:
+        example: Some Error
+        type: string
+    type: object
+info:
+  contact: {}
+  description: API documentation
+  title: Visualtez Testing API
+  version: "1.0"
+paths:
+  /testing:
+    post:
+      description: Run a test
+      operationId: get-run-a-test
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/api.Error'
+swagger: "2.0"

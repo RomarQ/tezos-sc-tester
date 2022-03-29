@@ -18,7 +18,8 @@ BUILD_IMAGE ?= golang:1.18-alpine
 all: install build
 
 install:
-	@go mod download
+	@go mod tidy
+	@go mod vendor
 
 test:
 	@go test -v ./...
