@@ -24,8 +24,11 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
 
-      - name: Download Dependencies
+      - name: Download dependencies
         run: make install
 
-      - name: Run Tests
+      - name: Check dependencies checksum
+        run: git diff --quiet go.sum
+
+      - name: Run tests
         run: make test
