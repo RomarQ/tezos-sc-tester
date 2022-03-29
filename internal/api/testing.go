@@ -35,12 +35,12 @@ func InitTestingAPI(config Config.Config) TestingAPI {
 func (api *TestingAPI) RunTest(ctx echo.Context) error {
 	actions, err := Action.GetActions(ctx.Request().Body)
 	if err != nil {
-		return HTTPError(ctx, http.StatusBadRequest, err.Error())
+		return HTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	prime, err := rand.Prime(rand.Reader, 64)
 	if err != nil {
-		return HTTPError(ctx, http.StatusInternalServerError, "Something went wrong.")
+		return HTTPError(http.StatusInternalServerError, "Something went wrong.")
 	}
 
 	taskID := fmt.Sprintf("task_%d", prime)
@@ -51,7 +51,7 @@ func (api *TestingAPI) RunTest(ctx echo.Context) error {
 	// Boostrap mockup
 	err = mockup.Bootstrap()
 	if err != nil {
-		return HTTPError(ctx, http.StatusInternalServerError, "Could not bootstrap test environment.")
+		return HTTPError(http.StatusInternalServerError, "Could not bootstrap test environment.")
 	}
 
 	Logger.Debug("%s %v", fmt.Sprintf("%d", prime), actions)
