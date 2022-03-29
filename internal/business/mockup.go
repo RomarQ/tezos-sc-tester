@@ -21,6 +21,7 @@ const (
 	Protocol
 	ProtocolConstants
 	BootstrapAccounts
+	BurnCap
 )
 
 type TezosClientArgument struct {
@@ -29,18 +30,22 @@ type TezosClientArgument struct {
 }
 
 type Mockup struct {
+	TaskID string
 	Config Config.Config
 }
 
-func InitMockup(config Config.Config) Mockup {
-	return Mockup{Config: config}
+func InitMockup(taskID string, config Config.Config) Mockup {
+	return Mockup{
+		TaskID: taskID,
+		Config: config,
+	}
 }
 
-func (m *Mockup) Bootstrap(taskID string) error {
-	temporaryDirectory := fmt.Sprintf("%s/_tmp/%s", m.Config.Tezos.BaseDirectory, taskID)
-	Logger.Debug("Creating mockup directory: %s.", temporaryDirectory)
+// Bootstrap a mockup environment for the task
+func (m *Mockup) Bootstrap() error {
+	temporaryDirectory := m.getTaskDirectory()
+	Logger.Debug("[Task #%s] - Creating task directory (%s).", m.TaskID, temporaryDirectory)
 
-	command := fmt.Sprintf("%s/%s", m.Config.Tezos.BaseDirectory, cmd_tezos_client)
 	arguments := composeArguments(
 		TezosClientArgument{
 			Kind:       Mode,
@@ -68,14 +73,125 @@ func (m *Mockup) Bootstrap(taskID string) error {
 		},
 	)
 
-	_, err := m.runTezosClient(command, arguments)
+	_, err := m.runTezosClient(m.getTezosClientPath(), arguments)
 	return err
 }
 
-func (m *Mockup) Teardown(taskID string) error {
-	temporaryDirectory := fmt.Sprintf("%s/_tmp/%s", m.Config.Tezos.BaseDirectory, taskID)
-	Logger.Debug("Deleting mockup directory: %s.", temporaryDirectory)
+// Clear task artifacts
+func (m *Mockup) Teardown() error {
+	temporaryDirectory := m.getTaskDirectory()
+	Logger.Debug("[Task #%s] - Deleting task directory (%s).", m.TaskID, temporaryDirectory)
+
 	return os.RemoveAll(temporaryDirectory)
+}
+
+// Generate Wallet
+func (m *Mockup) GenerateWallet(walletName string) error {
+	Logger.Debug("[Task #%s] - Generating wallet (%s).", m.TaskID, walletName)
+
+	arguments := composeArguments(
+		TezosClientArgument{
+			Kind:       Mode,
+			Parameters: []string{"mockup"},
+		},
+		TezosClientArgument{
+			Kind:       BaseDirectory,
+			Parameters: []string{m.getTaskDirectory()},
+		},
+		TezosClientArgument{
+			Kind:       Protocol,
+			Parameters: []string{m.Config.Tezos.DefaultProtocol},
+		},
+		TezosClientArgument{
+			Kind:       COMMAND,
+			Parameters: []string{"gen", "keys", walletName},
+		},
+	)
+
+	_, err := m.runTezosClient(m.getTezosClientPath(), arguments)
+	return err
+}
+
+func (m *Mockup) ImportSecret(privateKey string, walletName string) error {
+	Logger.Debug("[Task #%s] - Importing secret key (%s).", m.TaskID, walletName)
+
+	arguments := composeArguments(
+		TezosClientArgument{
+			Kind:       Mode,
+			Parameters: []string{"mockup"},
+		},
+		TezosClientArgument{
+			Kind:       BaseDirectory,
+			Parameters: []string{m.getTaskDirectory()},
+		},
+		TezosClientArgument{
+			Kind:       Protocol,
+			Parameters: []string{m.Config.Tezos.DefaultProtocol},
+		},
+		TezosClientArgument{
+			Kind:       COMMAND,
+			Parameters: []string{"import", "secret", "key", walletName, fmt.Sprintf("unencrypted:%s", privateKey)},
+		},
+	)
+
+	_, err := m.runTezosClient(m.getTezosClientPath(), arguments)
+	return err
+}
+
+func (m *Mockup) Transfer(amount int64, source string, recipient string) error {
+	Logger.Debug("[Task #%s] - Transfering %dꜩ from %s to %s.", m.TaskID, amount, source, recipient)
+
+	arguments := composeArguments(
+		TezosClientArgument{
+			Kind:       Mode,
+			Parameters: []string{"mockup"},
+		},
+		TezosClientArgument{
+			Kind:       BaseDirectory,
+			Parameters: []string{m.getTaskDirectory()},
+		},
+		TezosClientArgument{
+			Kind:       Protocol,
+			Parameters: []string{m.Config.Tezos.DefaultProtocol},
+		},
+		TezosClientArgument{
+			Kind:       COMMAND,
+			Parameters: []string{"transfer", fmt.Sprint(amount), "from", source, "to", recipient},
+		},
+		TezosClientArgument{
+			Kind:       BurnCap,
+			Parameters: []string{"0.1"},
+		},
+	)
+
+	_, err := m.runTezosClient(m.getTezosClientPath(), arguments)
+	return err
+}
+
+func (m *Mockup) RevealWallet(walletName string) error {
+	Logger.Debug("[Task #%s] - Revealing wallet (%s).", m.TaskID, walletName)
+
+	arguments := composeArguments(
+		TezosClientArgument{
+			Kind:       Mode,
+			Parameters: []string{"mockup"},
+		},
+		TezosClientArgument{
+			Kind:       BaseDirectory,
+			Parameters: []string{m.getTaskDirectory()},
+		},
+		TezosClientArgument{
+			Kind:       Protocol,
+			Parameters: []string{m.Config.Tezos.DefaultProtocol},
+		},
+		TezosClientArgument{
+			Kind:       COMMAND,
+			Parameters: []string{"reveal", "key", "for", walletName},
+		},
+	)
+
+	_, err := m.runTezosClient(m.getTezosClientPath(), arguments)
+	return err
 }
 
 // Execute a "tezos-client" command
@@ -97,10 +213,18 @@ func (m *Mockup) runTezosClient(command string, args []string) ([]byte, error) {
 
 	output := outBuffer.Bytes()
 	if len(output) > 0 {
-		Logger.Debug("Got the following output:\n\n%s\nwhen executing command: %s.", output, cmd.Args)
+		Logger.Debug("Got the following output:\n\n%s\nwhen executing command: %s.", string(output[:]), cmd.Args)
 	}
 
 	return output, nil
+}
+
+func (m *Mockup) getTaskDirectory() string {
+	return fmt.Sprintf("%s/_tmp/%s", m.Config.Tezos.BaseDirectory, m.TaskID)
+}
+
+func (m *Mockup) getTezosClientPath() string {
+	return fmt.Sprintf("%s/%s", m.Config.Tezos.BaseDirectory, cmd_tezos_client)
 }
 
 func composeArguments(args ...TezosClientArgument) []string {
@@ -117,6 +241,8 @@ func composeArguments(args ...TezosClientArgument) []string {
 			arguments = append(arguments, "--protocol-constants")
 		case BootstrapAccounts:
 			arguments = append(arguments, "--bootstrap-accounts")
+		case BurnCap:
+			arguments = append(arguments, "--burn-cap")
 		}
 		arguments = append(arguments, argument.Parameters...)
 	}
