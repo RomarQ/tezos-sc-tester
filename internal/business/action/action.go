@@ -7,24 +7,34 @@ import (
 
 	"github.com/tidwall/gjson"
 
-	Mockup "github.com/romarq/visualtez-testing/internal/business"
+	"github.com/romarq/visualtez-testing/internal/business"
 )
 
-type TestStatus string
+type (
+	TestStatus string
+	TestResult struct {
+		Status      TestStatus  `json:"status"`
+		Kind        ActionKind  `json:"kind"`
+		Description string      `json:"description,omitempty"`
+		Action      interface{} `json:"action"`
+	}
+	Action struct {
+		Kind    ActionKind  `json:"kind"`
+		Payload interface{} `json:"payload"`
+	}
+	IAction interface {
+		Run(mockup business.Mockup) error
+		Unmarshal(bytes json.RawMessage) error
+	}
+)
 
 const (
 	Failure TestStatus = "failure"
 	Success            = "success"
 )
 
-type TestResult struct {
-	Status      TestStatus  `json:"status"`
-	Description string      `json:"description,omitempty"`
-	Action      interface{} `json:"action"`
-}
-
 // Unmarshal actions
-func GetActions(body io.ReadCloser) ([]interface{}, error) {
+func GetActions(body io.ReadCloser) ([]IAction, error) {
 	rawActions := make([]json.RawMessage, 0)
 
 	err := json.NewDecoder(body).Decode(&rawActions)
@@ -32,16 +42,16 @@ func GetActions(body io.ReadCloser) ([]interface{}, error) {
 		return nil, err
 	}
 
-	actions := make([]interface{}, 0)
+	actions := make([]IAction, 0)
 	for _, rawAction := range rawActions {
 		kind := gjson.GetBytes(rawAction, `kind`)
+		payload := gjson.GetBytes(rawAction, `payload`)
 		switch kind.String() {
 		default:
 			return nil, fmt.Errorf("Unexpected action kind (%s).", kind)
 		case string(CreateImplicitAccount):
-			action := CreateImplicitAccountAction{}
-			err = action.Unmarshal(rawAction)
-			if err != nil {
+			action := &CreateImplicitAccountAction{}
+			if err = action.Unmarshal(json.RawMessage(payload.Raw)); err != nil {
 				return nil, err
 			}
 			actions = append(actions, action)
@@ -51,17 +61,19 @@ func GetActions(body io.ReadCloser) ([]interface{}, error) {
 	return actions, err
 }
 
-func ApplyActions(m Mockup.Mockup, taskID string, actions []interface{}) []TestResult {
-	getSuccessResponse := func(action interface{}) TestResult {
+func ApplyActions(mockup business.Mockup, actions []IAction) []TestResult {
+	getSuccessResponse := func(kind ActionKind, action interface{}) TestResult {
 		return TestResult{
 			Status: Success,
+			Kind:   kind,
 			Action: action,
 		}
 	}
 
-	getFailureResponse := func(description string, action interface{}) TestResult {
+	getFailureResponse := func(kind ActionKind, description string, action interface{}) TestResult {
 		return TestResult{
 			Status:      Failure,
+			Kind:        kind,
 			Description: description,
 			Action:      action,
 		}
@@ -69,51 +81,15 @@ func ApplyActions(m Mockup.Mockup, taskID string, actions []interface{}) []TestR
 
 	responses := make([]TestResult, 0)
 	for _, action := range actions {
-		switch content := action.(type) {
-		case CreateImplicitAccountAction:
-			keyPair, err := content.GenerateKey()
-			if err != nil {
-				responses = append(
-					responses,
-					getFailureResponse("Could not generate wallet.", content),
-				)
-				continue
-			}
-
-			// Import private key
-			privateKey := keyPair.String()
-			err = m.ImportSecret(privateKey, content.Payload.Name)
-			if err != nil {
-				responses = append(
-					responses,
-					getFailureResponse("Could not import wallet.", content),
-				)
-				continue
-			}
-
-			// Fund wallet
-			err = m.Transfer(content.Payload.Balance, "bootstrap1", keyPair.Address().String())
-			if err != nil {
-				responses = append(
-					responses,
-					getFailureResponse("Could not fund wallet.", content),
-				)
-				continue
-			}
-
-			// Reveal wallet
-			err = m.RevealWallet(content.Payload.Name)
-			if err != nil {
-				responses = append(
-					responses,
-					getFailureResponse("Could not reveal wallet.", content),
-				)
-				continue
-			}
-
+		if err := action.Run(mockup); err != nil {
 			responses = append(
 				responses,
-				getSuccessResponse(content),
+				getFailureResponse(CreateImplicitAccount, err.Error(), action),
+			)
+		} else {
+			responses = append(
+				responses,
+				getSuccessResponse(CreateImplicitAccount, action),
 			)
 		}
 	}

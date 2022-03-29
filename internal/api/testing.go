@@ -56,5 +56,5 @@ func (api *TestingAPI) RunTest(ctx echo.Context) error {
 
 	Logger.Debug("%s %v", fmt.Sprintf("%d", prime), actions)
 
-	return ctx.JSON(http.StatusOK, Action.ApplyActions(mockup, taskID, actions))
+	return ctx.JSON(http.StatusOK, Action.ApplyActions(mockup, actions))
 }

@@ -22,7 +22,7 @@ install:
 	@go mod vendor
 
 test:
-	@go test -v ./...
+	@go test -cover -coverprofile=coverage.out -v ./...
 
 build-%:
 	@$(MAKE) build                        \
