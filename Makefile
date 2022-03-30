@@ -4,16 +4,10 @@ BIN := api
 
 VERSION := 0.0.1
 
-ALL_PLATFORMS := linux/amd64 linux/arm linux/arm64 linux/ppc64le linux/s390x
+ALL_PLATFORMS := linux/amd64 linux/arm64
 
 OS := $(if $(GOOS),$(GOOS),$(shell go env GOOS))
 ARCH := $(if $(GOARCH),$(GOARCH),$(shell go env GOARCH))
-BASEIMAGE ?= gcr.io/distroless/static
-
-IMAGE := $(REGISTRY)/$(BIN)
-TAG := $(VERSION)__$(OS)_$(ARCH)
-
-BUILD_IMAGE ?= golang:1.18-alpine
 
 all: install build
 
@@ -41,31 +35,10 @@ BUILD_DIRS := bin/$(OS)_$(ARCH)     \
 bin/%: .go/bin/%.stamp
 	@true
 
-# This will build the binary under ./.go and update the real binary if needed.
 .PHONY: .go/%.stamp
 .go/%.stamp: $(BUILD_DIRS)
-	@echo "Making $</$(APP_NAME)-$(shell basename $*)"
-	@docker run                                                 \
-	    -i                                                      \
-	    --rm                                                    \
-	    -u $$(id -u):$$(id -g)                                  \
-	    -v $$(pwd):/src                                         \
-	    -w /src                                                 \
-	    -v $$(pwd)/.go/$<:/go/bin  \
-	    -v $$(pwd)/.go/cache:/.cache                            \
-	    --env HTTP_PROXY=$(HTTP_PROXY)                          \
-	    --env HTTPS_PROXY=$(HTTPS_PROXY)                        \
-	    $(BUILD_IMAGE)                                          \
-	    /bin/sh -c "                                            \
-	        ARCH=$(ARCH)                                        \
-	        OS=$(OS)                                            \
-	        VERSION=$(VERSION)                                  \
-	        ./scripts/build.sh                                    \
-	    "
-	@if ! cmp -s .go/$* $*; then \
-	    mv .go/$* $</$(APP_NAME)-$(shell basename $*);            \
-	    date >$@;                              \
-	fi
+	@sh -c "ARCH=$(ARCH) OS=$(OS) VERSION=$(VERSION) ./scripts/build.sh"
+	@echo "Compilation complete: $</$(APP_NAME)-$(shell basename $*)"
 
 version:
 	@echo $(VERSION)
@@ -73,7 +46,10 @@ version:
 $(BUILD_DIRS):
 	@mkdir -p $@
 
-clean: bin-clean
+clean: bin-clean vendor-clean
+
+vendor-clean:
+	rm -rf vendor
 
 bin-clean:
 	rm -rf .go bin
