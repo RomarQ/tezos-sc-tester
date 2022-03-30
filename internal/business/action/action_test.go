@@ -1,7 +1,6 @@
 package action
 
 import (
-	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -72,36 +71,35 @@ func TestGetActions(t *testing.T) {
 func TestApplyActions(t *testing.T) {
 	t.Run("Test ApplyActions",
 		func(t *testing.T) {
-			action_createImplicitAccount_alice := &CreateImplicitAccountActionMock{
-				CreateImplicitAccountAction: CreateImplicitAccountAction{
-					Name:    "alice",
-					Balance: float64(10),
-				},
+			action_createImplicitAccount_alice := CreateImplicitAccountAction{
+				Name:    "alice",
+				Balance: float64(10),
 			}
-			action_createImplicitAccount_bob := &CreateImplicitAccountActionMock{
-				CreateImplicitAccountAction: CreateImplicitAccountAction{
-					Name:    "bob",
-					Balance: float64(10),
-				},
+			action_createImplicitAccount_bob := CreateImplicitAccountAction{
+				Name:    "bob",
+				Balance: float64(10),
 			}
 			actions := []IAction{
-				action_createImplicitAccount_alice,
-				action_createImplicitAccount_bob,
+				&CreateImplicitAccountActionMock{action_createImplicitAccount_alice},
+				&CreateImplicitAccountActionMock{action_createImplicitAccount_bob},
 			}
 			results := ApplyActions(business.Mockup{}, actions)
-			assert.ElementsMatch(
+			assert.Equal(
 				t,
-				[]TestResult{
+				[]ActionResult{
 					{
 						Status: Success,
 						Kind:   CreateImplicitAccount,
 						Action: action_createImplicitAccount_alice,
+						Result: map[string]interface{}{},
 					},
 					{
-						Status:      Failure,
-						Kind:        CreateImplicitAccount,
-						Description: "FAIL",
-						Action:      action_createImplicitAccount_bob,
+						Status: Failure,
+						Kind:   CreateImplicitAccount,
+						Action: action_createImplicitAccount_bob,
+						Result: map[string]interface{}{
+							"details": "ERROR",
+						},
 					},
 				},
 				results,
@@ -116,9 +114,9 @@ type CreateImplicitAccountActionMock struct {
 	CreateImplicitAccountAction
 }
 
-func (action *CreateImplicitAccountActionMock) Run(mockup business.Mockup) error {
+func (action CreateImplicitAccountActionMock) Run(mockup business.Mockup) ActionResult {
 	if action.Name == "bob" {
-		return fmt.Errorf("FAIL")
+		return action.buildFailureResult("ERROR")
 	}
-	return nil
+	return action.buildSuccessResult(map[string]interface{}{})
 }

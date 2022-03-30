@@ -11,26 +11,26 @@ import (
 )
 
 type (
-	TestStatus string
-	TestResult struct {
-		Status      TestStatus  `json:"status"`
-		Kind        ActionKind  `json:"kind"`
-		Description string      `json:"description,omitempty"`
-		Action      interface{} `json:"action"`
+	ActionStatus string
+	ActionResult struct {
+		Status ActionStatus           `json:"status"`
+		Kind   ActionKind             `json:"kind"`
+		Action interface{}            `json:"action"`
+		Result map[string]interface{} `json:"result,omitempty"`
 	}
 	Action struct {
 		Kind    ActionKind  `json:"kind"`
 		Payload interface{} `json:"payload"`
 	}
 	IAction interface {
-		Run(mockup business.Mockup) error
+		Run(mockup business.Mockup) ActionResult
 		Unmarshal(bytes json.RawMessage) error
 	}
 )
 
 const (
-	Failure TestStatus = "failure"
-	Success            = "success"
+	Failure ActionStatus = "failure"
+	Success              = "success"
 )
 
 // Unmarshal actions
@@ -49,6 +49,12 @@ func GetActions(body io.ReadCloser) ([]IAction, error) {
 		switch kind.String() {
 		default:
 			return nil, fmt.Errorf("Unexpected action kind (%s).", kind)
+		case string(OriginateContract):
+			action := &OriginateContractAction{}
+			if err = action.Unmarshal(json.RawMessage(payload.Raw)); err != nil {
+				return nil, err
+			}
+			actions = append(actions, action)
 		case string(CreateImplicitAccount):
 			action := &CreateImplicitAccountAction{}
 			if err = action.Unmarshal(json.RawMessage(payload.Raw)); err != nil {
@@ -61,37 +67,11 @@ func GetActions(body io.ReadCloser) ([]IAction, error) {
 	return actions, err
 }
 
-func ApplyActions(mockup business.Mockup, actions []IAction) []TestResult {
-	getSuccessResponse := func(kind ActionKind, action interface{}) TestResult {
-		return TestResult{
-			Status: Success,
-			Kind:   kind,
-			Action: action,
-		}
-	}
+func ApplyActions(mockup business.Mockup, actions []IAction) []ActionResult {
+	responses := make([]ActionResult, 0)
 
-	getFailureResponse := func(kind ActionKind, description string, action interface{}) TestResult {
-		return TestResult{
-			Status:      Failure,
-			Kind:        kind,
-			Description: description,
-			Action:      action,
-		}
-	}
-
-	responses := make([]TestResult, 0)
 	for _, action := range actions {
-		if err := action.Run(mockup); err != nil {
-			responses = append(
-				responses,
-				getFailureResponse(CreateImplicitAccount, err.Error(), action),
-			)
-		} else {
-			responses = append(
-				responses,
-				getSuccessResponse(CreateImplicitAccount, action),
-			)
-		}
+		responses = append(responses, action.Run(mockup))
 	}
 
 	return responses

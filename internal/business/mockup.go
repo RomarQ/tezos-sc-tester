@@ -35,6 +35,7 @@ const (
 	BootstrapAccounts
 	BurnCap
 	Fee
+	Init
 )
 
 func InitMockup(taskID string, cfg config.Config) Mockup {
@@ -223,11 +224,8 @@ func (m *Mockup) GetBalance(name string) (float64, error) {
 		},
 	)
 
-	fmt.Println("\n\n\n\ndsadasdasd")
 	// Execute command
 	output, err := m.runTezosClient(m.getTezosClientPath(), arguments)
-	fmt.Println(err)
-
 	if err != nil {
 		return 0, err
 	}
@@ -240,6 +238,55 @@ func (m *Mockup) GetBalance(name string) (float64, error) {
 	}
 
 	return strconv.ParseFloat(match[1], 64)
+}
+
+func (m *Mockup) Originate(sender string, contractName string, balance float64, code string, storage string) (string, error) {
+	logger.Debug("[Task #%s] - Originating contract (%s).", m.TaskID, contractName)
+
+	arguments := composeArguments(
+		TezosClientArgument{
+			Kind:       Mode,
+			Parameters: []string{"mockup"},
+		},
+		TezosClientArgument{
+			Kind:       BaseDirectory,
+			Parameters: []string{m.getTaskDirectory()},
+		},
+		TezosClientArgument{
+			Kind:       Protocol,
+			Parameters: []string{m.Config.Tezos.DefaultProtocol},
+		},
+		TezosClientArgument{
+			Kind: COMMAND,
+			Parameters: []string{
+				"originate", "contract", contractName,
+				"transferring", fmt.Sprint(balance), "from", sender,
+				"running", code,
+			},
+		},
+		TezosClientArgument{
+			Kind:       Init,
+			Parameters: []string{storage},
+		},
+		TezosClientArgument{
+			Kind:       BurnCap,
+			Parameters: []string{"0.1"},
+		},
+	)
+
+	output, err := m.runTezosClient(m.getTezosClientPath(), arguments)
+	if err != nil {
+		return "", err
+	}
+
+	// Extract balance in ꜩ
+	pattern := regexp.MustCompile(`New\scontract\s(\w+)\soriginated`)
+	match := pattern.FindStringSubmatch(string(output))
+	if len(match) < 2 {
+		return "", fmt.Errorf("Could not extract the contract address from origination output.")
+	}
+
+	return match[1], nil
 }
 
 // Execute a "tezos-client" command
@@ -293,6 +340,8 @@ func composeArguments(args ...TezosClientArgument) []string {
 			arguments = append(arguments, "--burn-cap")
 		case Fee:
 			arguments = append(arguments, "--fee")
+		case Init:
+			arguments = append(arguments, "--init")
 		}
 		arguments = append(arguments, argument.Parameters...)
 	}

@@ -28,48 +28,77 @@ func (action *CreateImplicitAccountAction) Unmarshal(bytes json.RawMessage) erro
 }
 
 // Perform the action
-func (action *CreateImplicitAccountAction) Run(mockup business.Mockup) error {
+func (action CreateImplicitAccountAction) Run(mockup business.Mockup) ActionResult {
 	keyPair, err := business.GenerateKey()
 	if err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
-		return fmt.Errorf("Could not generate wallet.")
+		return action.buildFailureResult("Could not generate wallet.")
 	}
 
 	// Import private key
 	privateKey := keyPair.String()
 	if err = mockup.ImportSecret(privateKey, action.Name); err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
-		return fmt.Errorf("Could not import wallet.")
+		return action.buildFailureResult("Could not import wallet.")
 	}
 
 	// Fund wallet
+	address := keyPair.Address().String()
 	balance := action.Balance + revealFee // Increments revealFee which will be debited when revealing the wallet
-	if err = mockup.Transfer(balance, "bootstrap1", keyPair.Address().String()); err != nil {
+	if err = mockup.Transfer(balance, "bootstrap1", address); err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
-		return fmt.Errorf("Could not fund wallet.")
+		return action.buildFailureResult("Could not fund wallet.")
 	}
 
 	// Reveal wallet
 	if err = mockup.RevealWallet(action.Name, revealFee); err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
-		return fmt.Errorf("Could not reveal wallet.")
+		return action.buildFailureResult("Could not reveal wallet.")
 	}
 
 	// Confirm that the wallet was funded with the expected amount
 	walletBalance, err := mockup.GetBalance(action.Name)
 	if err != nil {
-		return fmt.Errorf("Failed to confirm balance.")
+		return action.buildFailureResult("Failed to confirm balance.")
 	}
 	if walletBalance != action.Balance {
-		return fmt.Errorf("Account balance mismatch %f <> %f.", action.Balance, walletBalance)
+		err := fmt.Sprintf("Account balance mismatch %f <> %f.", action.Balance, walletBalance)
+		return action.buildFailureResult(err)
+	}
+
+	return action.buildSuccessResult(map[string]interface{}{
+		"address": address,
+	})
+}
+
+func (action CreateImplicitAccountAction) validate() error {
+	missingFields := make([]string, 0)
+	if action.Name == "" {
+		missingFields = append(missingFields, "name")
+	}
+	if len(missingFields) > 0 {
+		return fmt.Errorf("Action of kind (%s) misses the following fields %s.", CreateImplicitAccount, missingFields)
 	}
 
 	return nil
 }
 
-func (action *CreateImplicitAccountAction) validate() error {
-	if action.Name == "" {
-		return fmt.Errorf("Actions of kind (%s) must contain a name field.", CreateImplicitAccount)
+func (action CreateImplicitAccountAction) buildSuccessResult(result map[string]interface{}) ActionResult {
+	return ActionResult{
+		Status: Success,
+		Kind:   CreateImplicitAccount,
+		Result: result,
+		Action: action,
 	}
-	return nil
+}
+
+func (action CreateImplicitAccountAction) buildFailureResult(details string) ActionResult {
+	return ActionResult{
+		Status: Failure,
+		Kind:   CreateImplicitAccount,
+		Action: action,
+		Result: map[string]interface{}{
+			"details": details,
+		},
+	}
 }
