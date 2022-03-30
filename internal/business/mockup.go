@@ -5,14 +5,26 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
+	"strconv"
 
-	Config "github.com/romarq/visualtez-testing/internal/config"
-	Logger "github.com/romarq/visualtez-testing/internal/logger"
+	"github.com/romarq/visualtez-testing/internal/config"
+	"github.com/romarq/visualtez-testing/internal/logger"
 )
 
 const cmd_tezos_client = "tezos-client"
 
-type TezosClientArgumentKind int8
+type (
+	TezosClientArgumentKind int8
+	TezosClientArgument     struct {
+		Kind       TezosClientArgumentKind
+		Parameters []string
+	}
+	Mockup struct {
+		TaskID string
+		Config config.Config
+	}
+)
 
 const (
 	COMMAND TezosClientArgumentKind = iota
@@ -22,29 +34,20 @@ const (
 	ProtocolConstants
 	BootstrapAccounts
 	BurnCap
+	Fee
 )
 
-type TezosClientArgument struct {
-	Kind       TezosClientArgumentKind
-	Parameters []string
-}
-
-type Mockup struct {
-	TaskID string
-	Config Config.Config
-}
-
-func InitMockup(taskID string, config Config.Config) Mockup {
+func InitMockup(taskID string, cfg config.Config) Mockup {
 	return Mockup{
 		TaskID: taskID,
-		Config: config,
+		Config: cfg,
 	}
 }
 
 // Bootstrap a mockup environment for the task
 func (m *Mockup) Bootstrap() error {
 	temporaryDirectory := m.getTaskDirectory()
-	Logger.Debug("[Task #%s] - Creating task directory (%s).", m.TaskID, temporaryDirectory)
+	logger.Debug("[Task #%s] - Creating task directory (%s).", m.TaskID, temporaryDirectory)
 
 	arguments := composeArguments(
 		TezosClientArgument{
@@ -80,14 +83,14 @@ func (m *Mockup) Bootstrap() error {
 // Clear task artifacts
 func (m *Mockup) Teardown() error {
 	temporaryDirectory := m.getTaskDirectory()
-	Logger.Debug("[Task #%s] - Deleting task directory (%s).", m.TaskID, temporaryDirectory)
+	logger.Debug("[Task #%s] - Deleting task directory (%s).", m.TaskID, temporaryDirectory)
 
 	return os.RemoveAll(temporaryDirectory)
 }
 
 // Generate Wallet
 func (m *Mockup) GenerateWallet(walletName string) error {
-	Logger.Debug("[Task #%s] - Generating wallet (%s).", m.TaskID, walletName)
+	logger.Debug("[Task #%s] - Generating wallet (%s).", m.TaskID, walletName)
 
 	arguments := composeArguments(
 		TezosClientArgument{
@@ -113,7 +116,7 @@ func (m *Mockup) GenerateWallet(walletName string) error {
 }
 
 func (m *Mockup) ImportSecret(privateKey string, walletName string) error {
-	Logger.Debug("[Task #%s] - Importing secret key (%s).", m.TaskID, walletName)
+	logger.Debug("[Task #%s] - Importing secret key (%s).", m.TaskID, walletName)
 
 	arguments := composeArguments(
 		TezosClientArgument{
@@ -138,8 +141,8 @@ func (m *Mockup) ImportSecret(privateKey string, walletName string) error {
 	return err
 }
 
-func (m *Mockup) Transfer(amount int64, source string, recipient string) error {
-	Logger.Debug("[Task #%s] - Transfering %dꜩ from %s to %s.", m.TaskID, amount, source, recipient)
+func (m *Mockup) Transfer(amount float64, source string, recipient string) error {
+	logger.Debug("[Task #%s] - Transfering %dꜩ from %s to %s.", m.TaskID, amount, source, recipient)
 
 	arguments := composeArguments(
 		TezosClientArgument{
@@ -168,8 +171,8 @@ func (m *Mockup) Transfer(amount int64, source string, recipient string) error {
 	return err
 }
 
-func (m *Mockup) RevealWallet(walletName string) error {
-	Logger.Debug("[Task #%s] - Revealing wallet (%s).", m.TaskID, walletName)
+func (m *Mockup) RevealWallet(walletName string, revealFee float64) error {
+	logger.Debug("[Task #%s] - Revealing wallet (%s).", m.TaskID, walletName)
 
 	arguments := composeArguments(
 		TezosClientArgument{
@@ -188,10 +191,55 @@ func (m *Mockup) RevealWallet(walletName string) error {
 			Kind:       COMMAND,
 			Parameters: []string{"reveal", "key", "for", walletName},
 		},
+		TezosClientArgument{
+			Kind:       Fee,
+			Parameters: []string{fmt.Sprint(revealFee)},
+		},
 	)
 
 	_, err := m.runTezosClient(m.getTezosClientPath(), arguments)
 	return err
+}
+
+func (m *Mockup) GetBalance(name string) (float64, error) {
+	logger.Debug("[Task #%s] - Get balance of (%s).", m.TaskID, name)
+
+	arguments := composeArguments(
+		TezosClientArgument{
+			Kind:       Mode,
+			Parameters: []string{"mockup"},
+		},
+		TezosClientArgument{
+			Kind:       BaseDirectory,
+			Parameters: []string{m.getTaskDirectory()},
+		},
+		TezosClientArgument{
+			Kind:       Protocol,
+			Parameters: []string{m.Config.Tezos.DefaultProtocol},
+		},
+		TezosClientArgument{
+			Kind:       COMMAND,
+			Parameters: []string{"get", "balance", "for", name},
+		},
+	)
+
+	fmt.Println("\n\n\n\ndsadasdasd")
+	// Execute command
+	output, err := m.runTezosClient(m.getTezosClientPath(), arguments)
+	fmt.Println(err)
+
+	if err != nil {
+		return 0, err
+	}
+
+	// Extract balance in ꜩ
+	pattern := regexp.MustCompile(`(\d*.?\d*)\sꜩ`)
+	match := pattern.FindStringSubmatch(string(output))
+	if len(match) < 2 {
+		return 0, fmt.Errorf("Could not get the balance for account %s.", name)
+	}
+
+	return strconv.ParseFloat(match[1], 64)
 }
 
 // Execute a "tezos-client" command
@@ -205,15 +253,15 @@ func (m *Mockup) runTezosClient(command string, args []string) ([]byte, error) {
 
 	if err := cmd.Run(); err != nil {
 		if errBuffer.Len() > 0 {
-			msg := string(errBuffer.Bytes()[:])
-			Logger.Error("Got the following error:\n\n%s\nwhen executing command: %s.", msg, cmd.Args)
+			msg := errBuffer.String()
+			logger.Error("Got the following error:\n\n%s\nwhen executing command: %s.", msg, cmd.Args)
 		}
 		return nil, err
 	}
 
 	output := outBuffer.Bytes()
 	if len(output) > 0 {
-		Logger.Debug("Got the following output:\n\n%s\nwhen executing command: %s.", string(output[:]), cmd.Args)
+		logger.Debug("Got the following output:\n\n%s\nwhen executing command: %s.", string(output), cmd.Args)
 	}
 
 	return output, nil
@@ -243,6 +291,8 @@ func composeArguments(args ...TezosClientArgument) []string {
 			arguments = append(arguments, "--bootstrap-accounts")
 		case BurnCap:
 			arguments = append(arguments, "--burn-cap")
+		case Fee:
+			arguments = append(arguments, "--fee")
 		}
 		arguments = append(arguments, argument.Parameters...)
 	}

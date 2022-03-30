@@ -31,7 +31,7 @@ func TestGetActions(t *testing.T) {
 				[]IAction{
 					&CreateImplicitAccountAction{
 						Name:    "alice",
-						Balance: int64(10),
+						Balance: float64(10),
 					},
 				},
 				actions,
@@ -75,13 +75,13 @@ func TestApplyActions(t *testing.T) {
 			action_createImplicitAccount_alice := &CreateImplicitAccountActionMock{
 				CreateImplicitAccountAction: CreateImplicitAccountAction{
 					Name:    "alice",
-					Balance: int64(10),
+					Balance: float64(10),
 				},
 			}
 			action_createImplicitAccount_bob := &CreateImplicitAccountActionMock{
 				CreateImplicitAccountAction: CreateImplicitAccountAction{
 					Name:    "bob",
-					Balance: int64(10),
+					Balance: float64(10),
 				},
 			}
 			actions := []IAction{

@@ -1,5 +1,7 @@
 # VisualTez Testing
 
+[![CI](https://github.com/RomarQ/visualtez-testing/actions/workflows/pipeline.yaml/badge.svg)](https://github.com/RomarQ/visualtez-testing/actions/workflows/pipeline.yaml)
+
 ## Install
 
 ```sh

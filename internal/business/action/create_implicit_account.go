@@ -9,9 +9,13 @@ import (
 )
 
 type CreateImplicitAccountAction struct {
-	Name    string `json:"name"`
-	Balance int64  `json:"balance"`
+	Name    string  `json:"name"`
+	Balance float64 `json:"balance"`
 }
+
+const (
+	revealFee = 0.5
+)
 
 // Unmarshal action
 func (action *CreateImplicitAccountAction) Unmarshal(bytes json.RawMessage) error {
@@ -39,15 +43,25 @@ func (action *CreateImplicitAccountAction) Run(mockup business.Mockup) error {
 	}
 
 	// Fund wallet
-	if err = mockup.Transfer(action.Balance, "bootstrap1", keyPair.Address().String()); err != nil {
+	balance := action.Balance + revealFee // Increments revealFee which will be debited when revealing the wallet
+	if err = mockup.Transfer(balance, "bootstrap1", keyPair.Address().String()); err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
 		return fmt.Errorf("Could not fund wallet.")
 	}
 
 	// Reveal wallet
-	if err = mockup.RevealWallet(action.Name); err != nil {
+	if err = mockup.RevealWallet(action.Name, revealFee); err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
 		return fmt.Errorf("Could not reveal wallet.")
+	}
+
+	// Confirm that the wallet was funded with the expected amount
+	walletBalance, err := mockup.GetBalance(action.Name)
+	if err != nil {
+		return fmt.Errorf("Failed to confirm balance.")
+	}
+	if walletBalance != action.Balance {
+		return fmt.Errorf("Account balance mismatch %f <> %f.", action.Balance, walletBalance)
 	}
 
 	return nil
