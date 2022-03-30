@@ -30,8 +30,8 @@ jobs:
       - name: Check dependencies checksum
         run: git diff --quiet go.sum
 
-      - name: Build amd64 executable
-        run: make build
+      - name: Build executables
+        run: make all-build
 
       - name: Run tests
         run: make test
