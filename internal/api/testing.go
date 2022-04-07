@@ -10,6 +10,7 @@ import (
 	Mockup "github.com/romarq/visualtez-testing/internal/business"
 	Action "github.com/romarq/visualtez-testing/internal/business/action"
 	Config "github.com/romarq/visualtez-testing/internal/config"
+	Error "github.com/romarq/visualtez-testing/internal/error"
 	Logger "github.com/romarq/visualtez-testing/internal/logger"
 )
 
@@ -34,13 +35,19 @@ func InitTestingAPI(config Config.Config) TestingAPI {
 // @Router /testing [post]
 func (api *TestingAPI) RunTest(ctx echo.Context) error {
 	actions, err := Action.GetActions(ctx.Request().Body)
+
 	if err != nil {
-		return HTTPError(http.StatusBadRequest, err.Error())
+		switch err.(type) {
+		default:
+			return Error.HttpError(http.StatusBadRequest, err.Error())
+		case *echo.HTTPError:
+			return err
+		}
 	}
 
 	prime, err := rand.Prime(rand.Reader, 64)
 	if err != nil {
-		return HTTPError(http.StatusInternalServerError, "Something went wrong.")
+		return Error.HttpError(http.StatusInternalServerError, "Something went wrong.")
 	}
 
 	taskID := fmt.Sprintf("task_%d", prime)
@@ -51,7 +58,7 @@ func (api *TestingAPI) RunTest(ctx echo.Context) error {
 	// Boostrap mockup
 	err = mockup.Bootstrap()
 	if err != nil {
-		return HTTPError(http.StatusInternalServerError, "Could not bootstrap test environment.")
+		return Error.HttpError(http.StatusInternalServerError, "Could not bootstrap test environment.")
 	}
 
 	Logger.Debug("%s %v", fmt.Sprintf("%d", prime), actions)

@@ -8,7 +8,7 @@ import (
 )
 
 func TestUnmarshal(t *testing.T) {
-	t.Run("Test CreateImplicitAccountAction Unmarshal",
+	t.Run("Test CreateImplicitAccountAction Unmarshal  (Valid)",
 		func(t *testing.T) {
 			action := CreateImplicitAccountAction{}
 			err := action.Unmarshal(
@@ -32,5 +32,20 @@ func TestUnmarshal(t *testing.T) {
 				action.Balance,
 				"Assert balance",
 			)
+		})
+
+	t.Run("Test CreateImplicitAccountAction Unmarshal (Invalid)",
+		func(t *testing.T) {
+			action := CreateImplicitAccountAction{}
+			err := action.Unmarshal(
+				json.RawMessage(`
+					{
+						"name":    "bob A",
+						"balance": 10
+					}
+				`),
+			)
+			assert.NotNil(t, err, "Must fail (name is invalid)")
+			assert.Equal(t, err.Error(), "Name (bob A) does not match pattern '^[a-zA-Z0-9._-]+$'.", "Assert error message")
 		})
 }

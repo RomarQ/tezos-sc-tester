@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 
 	"github.com/tidwall/gjson"
 
 	"github.com/romarq/visualtez-testing/internal/business"
+	Error "github.com/romarq/visualtez-testing/internal/error"
 )
 
 type (
@@ -44,21 +46,21 @@ func GetActions(body io.ReadCloser) ([]IAction, error) {
 
 	actions := make([]IAction, 0)
 	for _, rawAction := range rawActions {
-		kind := gjson.GetBytes(rawAction, `kind`)
-		payload := gjson.GetBytes(rawAction, `payload`)
+		kind := gjson.GetBytes(rawAction, "kind")
+		payload := gjson.GetBytes(rawAction, "payload")
 		switch kind.String() {
 		default:
 			return nil, fmt.Errorf("Unexpected action kind (%s).", kind)
 		case string(OriginateContract):
 			action := &OriginateContractAction{}
 			if err = action.Unmarshal(json.RawMessage(payload.Raw)); err != nil {
-				return nil, err
+				return nil, Error.DetailedHttpError(http.StatusBadRequest, err.Error(), rawAction)
 			}
 			actions = append(actions, action)
 		case string(CreateImplicitAccount):
 			action := &CreateImplicitAccountAction{}
 			if err = action.Unmarshal(json.RawMessage(payload.Raw)); err != nil {
-				return nil, err
+				return nil, Error.DetailedHttpError(http.StatusBadRequest, err.Error(), rawAction)
 			}
 			actions = append(actions, action)
 		}

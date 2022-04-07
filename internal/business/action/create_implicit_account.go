@@ -75,11 +75,13 @@ func (action CreateImplicitAccountAction) validate() error {
 	missingFields := make([]string, 0)
 	if action.Name == "" {
 		missingFields = append(missingFields, "name")
+	} else if err := business.ValidateString("^[a-zA-Z0-9._-]+$", action.Name); err != nil {
+		return err
 	}
+
 	if len(missingFields) > 0 {
 		return fmt.Errorf("Action of kind (%s) misses the following fields %s.", CreateImplicitAccount, missingFields)
 	}
-
 	return nil
 }
 
