@@ -3,6 +3,7 @@ package action
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/romarq/visualtez-testing/internal/business"
 	"github.com/romarq/visualtez-testing/internal/logger"
@@ -41,6 +42,8 @@ func (action OriginateContractAction) validate() error {
 	missingFields := make([]string, 0)
 	if action.Name == "" {
 		missingFields = append(missingFields, "name")
+	} else if err := business.ValidateString(STRING_IDENTIFIER_REGEX, action.Name); err != nil {
+		return err
 	}
 	if action.Code == "" {
 		missingFields = append(missingFields, "code")
@@ -50,7 +53,7 @@ func (action OriginateContractAction) validate() error {
 	}
 
 	if len(missingFields) > 0 {
-		return fmt.Errorf("Action of kind (%s) misses the following fields %s.", OriginateContract, missingFields)
+		return fmt.Errorf("Action of kind (%s) misses the following fields [%s].", OriginateContract, strings.Join(missingFields, ", "))
 	}
 
 	return nil

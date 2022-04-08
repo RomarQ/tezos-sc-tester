@@ -3,6 +3,7 @@ package action
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/romarq/visualtez-testing/internal/business"
 	"github.com/romarq/visualtez-testing/internal/logger"
@@ -75,12 +76,12 @@ func (action CreateImplicitAccountAction) validate() error {
 	missingFields := make([]string, 0)
 	if action.Name == "" {
 		missingFields = append(missingFields, "name")
-	} else if err := business.ValidateString("^[a-zA-Z0-9._-]+$", action.Name); err != nil {
+	} else if err := business.ValidateString(STRING_IDENTIFIER_REGEX, action.Name); err != nil {
 		return err
 	}
 
 	if len(missingFields) > 0 {
-		return fmt.Errorf("Action of kind (%s) misses the following fields %s.", CreateImplicitAccount, missingFields)
+		return fmt.Errorf("Action of kind (%s) misses the following fields [%s].", CreateImplicitAccount, strings.Join(missingFields, ", "))
 	}
 	return nil
 }

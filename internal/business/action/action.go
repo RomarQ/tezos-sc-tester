@@ -35,6 +35,11 @@ const (
 	Success              = "success"
 )
 
+const (
+	STRING_IDENTIFIER_REGEX = "^[a-zA-Z0-9._-]+$"
+	ENTRYPOINT_REGEX        = "^[a-zA-Z0-9_]{1,31}$"
+)
+
 // Unmarshal actions
 func GetActions(body io.ReadCloser) ([]IAction, error) {
 	rawActions := make([]json.RawMessage, 0)
@@ -46,24 +51,25 @@ func GetActions(body io.ReadCloser) ([]IAction, error) {
 
 	actions := make([]IAction, 0)
 	for _, rawAction := range rawActions {
+		var action IAction
+
 		kind := gjson.GetBytes(rawAction, "kind")
-		payload := gjson.GetBytes(rawAction, "payload")
 		switch kind.String() {
 		default:
 			return nil, fmt.Errorf("Unexpected action kind (%s).", kind)
+		case string(CallContract):
+			action = &CallContractAction{}
 		case string(OriginateContract):
-			action := &OriginateContractAction{}
-			if err = action.Unmarshal(json.RawMessage(payload.Raw)); err != nil {
-				return nil, Error.DetailedHttpError(http.StatusBadRequest, err.Error(), rawAction)
-			}
-			actions = append(actions, action)
+			action = &OriginateContractAction{}
 		case string(CreateImplicitAccount):
-			action := &CreateImplicitAccountAction{}
-			if err = action.Unmarshal(json.RawMessage(payload.Raw)); err != nil {
-				return nil, Error.DetailedHttpError(http.StatusBadRequest, err.Error(), rawAction)
-			}
-			actions = append(actions, action)
+			action = &CreateImplicitAccountAction{}
 		}
+
+		payload := gjson.GetBytes(rawAction, "payload")
+		if err = action.Unmarshal(json.RawMessage(payload.Raw)); err != nil {
+			return nil, Error.DetailedHttpError(http.StatusBadRequest, err.Error(), rawAction)
+		}
+		actions = append(actions, action)
 	}
 
 	return actions, err
