@@ -4,18 +4,29 @@ import (
 	"encoding/json"
 	"testing"
 
+	TestUtils "github.com/romarq/visualtez-testing/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestUnmarshal_OriginateContractAction(t *testing.T) {
 	t.Run("Test OriginateContractAction Unmarshal (Valid)",
 		func(t *testing.T) {
+			code := json.RawMessage(`
+				[
+					{ "prim": "storage", "args": [ { "prim": "unit" } ] },
+					{ "prim": "parameter", "args": [ { "prim": "unit", "annots": ["%entrypoint"] } ] },
+					{ "prim": "code", "args": [ { "prim": "CDR" }, { "prim": "NIL", "args": [ { "prim": "operation" } ] }, { "prim": "PAIR" } ] }
+				]
+			`)
+			storage := map[string]interface{}{
+				"prim": "Unit",
+			}
 			rawJson, err := json.MarshalIndent(
 				map[string]interface{}{
 					"name":    "contract_1",
 					"balance": 10,
-					"code":    "{storage unit ; parameter (unit %entrypoint) ; code { CDR ; NIL operation ; PAIR } }",
-					"storage": "Unit",
+					"code":    code,
+					"storage": storage,
 				},
 				"",
 				"",
@@ -38,14 +49,14 @@ func TestUnmarshal_OriginateContractAction(t *testing.T) {
 			)
 			assert.Equal(
 				t,
-				"{storage unit ; parameter (unit %entrypoint) ; code { CDR ; NIL operation ; PAIR } }",
-				action.Code,
+				TestUtils.PrettifyJSON(code),
+				TestUtils.PrettifyJSON(action.Code),
 				"Assert code",
 			)
 			assert.Equal(
 				t,
-				"Unit",
-				action.Storage,
+				TestUtils.PrettifyJSON(storage),
+				TestUtils.PrettifyJSON(action.Storage),
 				"Assert storage",
 			)
 		})

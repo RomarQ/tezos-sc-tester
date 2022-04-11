@@ -19,8 +19,8 @@ type Config struct {
 
 // LogConfig holds logging configuration
 type LogConfig struct {
-	Location string `yaml:"location,omitempty"`
-	Level    string `yaml:"level,omitempty"`
+	Location string          `yaml:"location,omitempty"`
+	Level    logger.LogLevel `yaml:"level,omitempty"`
 }
 
 type TezosConfig struct {
@@ -65,7 +65,7 @@ func load(file string) Config {
 		logger.Warn("Error reading configuration file: %s. %v", file, err)
 	}
 	if err := yaml.Unmarshal(fileContents, &c); err != nil {
-		logger.Warn("Failed to parse configuration file: %s", file, err)
+		logger.Warn("Failed to parse configuration file: %s.\n %s", file, err)
 	}
 
 	// Override configurations by ENV values (if provided)

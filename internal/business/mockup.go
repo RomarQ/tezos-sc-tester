@@ -16,16 +16,17 @@ const cmd_tezos_client = "tezos-client"
 
 type (
 	TezosClientArgumentKind int8
+	MichelsonFormat         string
 	TezosClientArgument     struct {
 		Kind       TezosClientArgumentKind
 		Parameters []string
 	}
 	CallContractArgument struct {
-		ContractName string
-		Source       string
-		Entrypoint   string
-		Parameter    string
-		Amount       float64
+		Recipient  string
+		Source     string
+		Entrypoint string
+		Parameter  string
+		Amount     float64
 	}
 	Mockup struct {
 		TaskID string
@@ -45,6 +46,9 @@ const (
 	Init
 	Arg
 	Entrypoint
+	//
+	Michelson MichelsonFormat = "michelson"
+	JSON      MichelsonFormat = "json"
 )
 
 func InitMockup(taskID string, cfg config.Config) Mockup {
@@ -151,38 +155,8 @@ func (m Mockup) ImportSecret(privateKey string, walletName string) error {
 	return err
 }
 
-func (m Mockup) Transfer(amount float64, source string, recipient string) error {
-	logger.Debug("[Task #%s] - Transfering %dꜩ from %s to %s.", m.TaskID, amount, source, recipient)
-
-	arguments := composeArguments(
-		TezosClientArgument{
-			Kind:       Mode,
-			Parameters: []string{"mockup"},
-		},
-		TezosClientArgument{
-			Kind:       BaseDirectory,
-			Parameters: []string{m.getTaskDirectory()},
-		},
-		TezosClientArgument{
-			Kind:       Protocol,
-			Parameters: []string{m.Config.Tezos.DefaultProtocol},
-		},
-		TezosClientArgument{
-			Kind:       COMMAND,
-			Parameters: []string{"transfer", fmt.Sprint(amount), "from", source, "to", recipient},
-		},
-		TezosClientArgument{
-			Kind:       BurnCap,
-			Parameters: []string{"0.1"},
-		},
-	)
-
-	_, err := m.runTezosClient(m.getTezosClientPath(), arguments)
-	return err
-}
-
-func (m Mockup) CallContract(arg CallContractArgument) error {
-	logger.Debug("[Task #%s] - Calling contract %s. %v", m.TaskID, arg.ContractName, arg)
+func (m Mockup) Transfer(arg CallContractArgument) error {
+	logger.Debug("[Task #%s] - Calling contract %s. %v", m.TaskID, arg.Recipient, arg)
 
 	args := make([]TezosClientArgument, 0)
 	args = append(
@@ -201,22 +175,35 @@ func (m Mockup) CallContract(arg CallContractArgument) error {
 		},
 		TezosClientArgument{
 			Kind:       COMMAND,
-			Parameters: []string{"transfer", fmt.Sprint(arg.Amount), "from", arg.Source, "to", arg.ContractName},
+			Parameters: []string{"transfer", fmt.Sprint(arg.Amount), "from", arg.Source, "to", arg.Recipient},
 		},
-		TezosClientArgument{
-			Kind:       Entrypoint,
-			Parameters: []string{arg.Entrypoint},
-		},
-		TezosClientArgument{
-			Kind:       Arg,
-			Parameters: []string{arg.Parameter},
-		},
+	)
+	if arg.Entrypoint != "" {
+		args = append(
+			args,
+			TezosClientArgument{
+				Kind:       Entrypoint,
+				Parameters: []string{arg.Entrypoint},
+			},
+		)
+	}
+	if arg.Parameter != "" {
+		args = append(
+			args,
+			TezosClientArgument{
+				Kind:       Arg,
+				Parameters: []string{arg.Parameter},
+			},
+		)
+	}
+
+	args = append(
+		args,
 		TezosClientArgument{
 			Kind:       BurnCap,
 			Parameters: []string{"1"},
 		},
 	)
-
 	arguments := composeArguments(args...)
 
 	_, err := m.runTezosClient(m.getTezosClientPath(), arguments)
@@ -227,6 +214,7 @@ func (m Mockup) CallContract(arg CallContractArgument) error {
 	return nil
 }
 
+// Reveal wallet
 func (m Mockup) RevealWallet(walletName string, revealFee float64) error {
 	logger.Debug("[Task #%s] - Revealing wallet (%s).", m.TaskID, walletName)
 
@@ -287,7 +275,7 @@ func (m Mockup) GetBalance(name string) (float64, error) {
 
 	// Extract balance in ꜩ
 	pattern := regexp.MustCompile(`(\d*.?\d*)\sꜩ`)
-	match := pattern.FindStringSubmatch(string(output))
+	match := pattern.FindStringSubmatch(output)
 	if len(match) < 2 {
 		return 0, fmt.Errorf("Could not get the balance for account %s.", name)
 	}
@@ -336,7 +324,7 @@ func (m Mockup) Originate(sender string, contractName string, balance float64, c
 
 	// Extract balance in ꜩ
 	pattern := regexp.MustCompile(`New\scontract\s(\w+)\soriginated`)
-	match := pattern.FindStringSubmatch(string(output))
+	match := pattern.FindStringSubmatch(output)
 	if len(match) < 2 {
 		return "", fmt.Errorf("Could not extract the contract address from origination output.")
 	}
@@ -344,8 +332,60 @@ func (m Mockup) Originate(sender string, contractName string, balance float64, c
 	return match[1], nil
 }
 
+// Convert script format between "michelson" and "json"
+func (m Mockup) ConvertScript(script string, from MichelsonFormat, to MichelsonFormat) (string, error) {
+	arguments := composeArguments(
+		TezosClientArgument{
+			Kind:       Mode,
+			Parameters: []string{"mockup"},
+		},
+		TezosClientArgument{
+			Kind:       BaseDirectory,
+			Parameters: []string{m.getTaskDirectory()},
+		},
+		TezosClientArgument{
+			Kind:       Protocol,
+			Parameters: []string{m.Config.Tezos.DefaultProtocol},
+		},
+		TezosClientArgument{
+			Kind: COMMAND,
+			Parameters: []string{
+				"convert", "script", script, "from", string(from), "to", string(to),
+			},
+		},
+	)
+
+	return m.runTezosClient(m.getTezosClientPath(), arguments)
+}
+
+// Convert data format between "michelson" and "json"
+func (m Mockup) ConvertData(data string, from MichelsonFormat, to MichelsonFormat) (string, error) {
+	arguments := composeArguments(
+		TezosClientArgument{
+			Kind:       Mode,
+			Parameters: []string{"mockup"},
+		},
+		TezosClientArgument{
+			Kind:       BaseDirectory,
+			Parameters: []string{m.getTaskDirectory()},
+		},
+		TezosClientArgument{
+			Kind:       Protocol,
+			Parameters: []string{m.Config.Tezos.DefaultProtocol},
+		},
+		TezosClientArgument{
+			Kind: COMMAND,
+			Parameters: []string{
+				"convert", "data", data, "from", string(from), "to", string(to),
+			},
+		},
+	)
+
+	return m.runTezosClient(m.getTezosClientPath(), arguments)
+}
+
 // Execute a "tezos-client" command
-func (m Mockup) runTezosClient(command string, args []string) ([]byte, error) {
+func (m Mockup) runTezosClient(command string, args []string) (string, error) {
 	cmd := exec.Command(command, args...)
 
 	var errBuffer bytes.Buffer
@@ -359,10 +399,10 @@ func (m Mockup) runTezosClient(command string, args []string) ([]byte, error) {
 			logger.Error("Got the following error:\n\n%s\nwhen executing command: %s.", msg, cmd.Args)
 			err = fmt.Errorf(msg)
 		}
-		return nil, err
+		return "", err
 	}
 
-	output := outBuffer.Bytes()
+	output := outBuffer.String()
 	if len(output) > 0 {
 		logger.Debug("Got the following output:\n\n%s\nwhen executing command: %s.", string(output), cmd.Args)
 	}

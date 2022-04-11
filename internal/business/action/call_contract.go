@@ -9,7 +9,7 @@ import (
 )
 
 type CallContractAction struct {
-	Name       string  `json:"name"`
+	Recipient  string  `json:"recipient"`
 	Sender     string  `json:"sender"`
 	Entrypoint string  `json:"entrypoint"`
 	Amount     float64 `json:"amount"`
@@ -28,16 +28,26 @@ func (action *CallContractAction) Unmarshal(bytes json.RawMessage) error {
 
 // Perform the action
 func (action CallContractAction) Run(mockup business.Mockup) ActionResult {
-	// address, err := mockup.Transfer()
+	err := mockup.Transfer(business.CallContractArgument{
+		Recipient:  action.Recipient,
+		Source:     action.Sender,
+		Entrypoint: action.Entrypoint,
+		Amount:     action.Amount,
+		Parameter:  action.Parameter,
+	})
 
-	return action.buildFailureResult("")
+	if err != nil {
+		return action.buildFailureResult(err.Error())
+	}
+
+	return action.buildSuccessResult(map[string]interface{}{})
 }
 
 func (action CallContractAction) validate() error {
 	missingFields := make([]string, 0)
-	if action.Name == "" {
-		missingFields = append(missingFields, "name")
-	} else if err := business.ValidateString(STRING_IDENTIFIER_REGEX, action.Name); err != nil {
+	if action.Recipient == "" {
+		missingFields = append(missingFields, "recipient")
+	} else if err := business.ValidateString(STRING_IDENTIFIER_REGEX, action.Recipient); err != nil {
 		return err
 	}
 	if action.Sender == "" {

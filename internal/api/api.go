@@ -35,7 +35,6 @@ func InitTestingAPI(config Config.Config) TestingAPI {
 // @Router /testing [post]
 func (api *TestingAPI) RunTest(ctx echo.Context) error {
 	actions, err := Action.GetActions(ctx.Request().Body)
-
 	if err != nil {
 		switch err.(type) {
 		default:
@@ -58,6 +57,7 @@ func (api *TestingAPI) RunTest(ctx echo.Context) error {
 	// Boostrap mockup
 	err = mockup.Bootstrap()
 	if err != nil {
+		Logger.Debug("Something went wrong: %s", err)
 		return Error.HttpError(http.StatusInternalServerError, "Could not bootstrap test environment.")
 	}
 

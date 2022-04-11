@@ -10,11 +10,15 @@ import (
 )
 
 type OriginateContractAction struct {
-	Name    string  `json:"name"`
-	Balance float64 `json:"balance"`
-	Code    string  `json:"code"`
-	Storage string  `json:"storage"`
+	Name    string          `json:"name"`
+	Balance float64         `json:"balance"`
+	Code    json.RawMessage `json:"code"`
+	Storage json.RawMessage `json:"storage"`
 }
+
+const (
+	default_originator = "bootstrap2"
+)
 
 // Unmarshal action
 func (action *OriginateContractAction) Unmarshal(bytes json.RawMessage) error {
@@ -28,11 +32,23 @@ func (action *OriginateContractAction) Unmarshal(bytes json.RawMessage) error {
 
 // Perform the action
 func (action OriginateContractAction) Run(mockup business.Mockup) ActionResult {
-	address, err := mockup.Originate("bootstrap2", action.Name, action.Balance, action.Code, string(action.Storage))
+	codeMicheline, err := mockup.ConvertScript(string(action.Code), business.JSON, business.Michelson)
+	if err != nil {
+		msg := fmt.Sprintf("Could not convert code from %s to %s.", business.JSON, business.Michelson)
+		return action.buildFailureResult(msg)
+	}
+	storageMicheline, err := mockup.ConvertData(string(action.Storage), business.JSON, business.Michelson)
+	if err != nil {
+		msg := fmt.Sprintf("Could not convert storage from %s to %s.", business.JSON, business.Michelson)
+		return action.buildFailureResult(msg)
+	}
+
+	address, err := mockup.Originate(default_originator, action.Name, action.Balance, codeMicheline, storageMicheline)
 	if err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
 		return action.buildFailureResult("Could not originate contract.")
 	}
+
 	return action.buildSuccessResult(map[string]interface{}{
 		"address": address,
 	})
@@ -45,10 +61,10 @@ func (action OriginateContractAction) validate() error {
 	} else if err := business.ValidateString(STRING_IDENTIFIER_REGEX, action.Name); err != nil {
 		return err
 	}
-	if action.Code == "" {
+	if action.Code == nil {
 		missingFields = append(missingFields, "code")
 	}
-	if action.Storage == "" {
+	if action.Storage == nil {
 		missingFields = append(missingFields, "storage")
 	}
 

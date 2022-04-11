@@ -32,7 +32,7 @@ type (
 
 const (
 	Failure ActionStatus = "failure"
-	Success              = "success"
+	Success ActionStatus = "success"
 )
 
 const (

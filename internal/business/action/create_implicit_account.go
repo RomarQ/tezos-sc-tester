@@ -46,7 +46,11 @@ func (action CreateImplicitAccountAction) Run(mockup business.Mockup) ActionResu
 	// Fund wallet
 	address := keyPair.Address().String()
 	balance := action.Balance + revealFee // Increments revealFee which will be debited when revealing the wallet
-	if err = mockup.Transfer(balance, "bootstrap1", address); err != nil {
+	if err = mockup.Transfer(business.CallContractArgument{
+		Recipient: address,
+		Source:    "bootstrap1",
+		Amount:    balance,
+	}); err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
 		return action.buildFailureResult("Could not fund wallet.")
 	}

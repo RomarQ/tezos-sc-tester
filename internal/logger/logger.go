@@ -10,14 +10,24 @@ import (
 )
 
 // Logger type
-type Logger = zap.SugaredLogger
+type (
+	Logger   = zap.SugaredLogger
+	LogLevel = string
+)
+
+const (
+	InfoLevel  LogLevel = "info"
+	WarnLevel  LogLevel = "warn"
+	DebugLevel LogLevel = "debug"
+	ErrorLevel LogLevel = "error"
+)
 
 // Supported log levels
 var logLevels = map[string]zapcore.Level{
-	"info":  zap.InfoLevel,
-	"warn":  zap.WarnLevel,
-	"debug": zap.DebugLevel,
-	"error": zap.ErrorLevel,
+	InfoLevel:  zap.InfoLevel,
+	WarnLevel:  zap.WarnLevel,
+	DebugLevel: zap.DebugLevel,
+	ErrorLevel: zap.ErrorLevel,
 }
 
 var instance *zap.SugaredLogger
@@ -26,11 +36,14 @@ var once sync.Once
 // Get the logger (Singleton pattern)
 func getLogger() *Logger {
 	once.Do(func() {
-		logger, err := zap.NewProduction()
-		if err != nil {
-			log.Fatalf("Can't initialize zap logger: %v", err)
+		// Do nothing if the logger was already instantiated.
+		if instance == nil {
+			logger, err := zap.NewProduction()
+			if err != nil {
+				log.Fatalf("Can't initialize zap logger: %v", err)
+			}
+			instance = logger.Sugar()
 		}
-		instance = logger.Sugar()
 	})
 	return instance
 }
@@ -61,10 +74,10 @@ func Fatal(template string, args ...interface{}) {
 }
 
 // SetupLogger - Configure logger
-func SetupLogger(location string, level string) {
+func SetupLogger(location string, level LogLevel) {
 	// Log level fallback
 	if _, ok := logLevels[level]; !ok {
-		level = "info"
+		level = InfoLevel
 	}
 
 	encoderCfg := zap.NewProductionEncoderConfig()
@@ -80,6 +93,5 @@ func SetupLogger(location string, level string) {
 		}),
 		logLevels[level],
 	))
-
 	instance = logger.Sugar()
 }

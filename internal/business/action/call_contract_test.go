@@ -14,7 +14,7 @@ func TestUnmarshal_CallContractAction(t *testing.T) {
 			err := action.Unmarshal(
 				json.RawMessage(`
 					{
-						"name":			"contract_1",
+						"recipient":	"contract_1",
 						"sender":		"sender_name",
 						"entrypoint":	"do_something",
 						"amount":		10,
@@ -26,7 +26,7 @@ func TestUnmarshal_CallContractAction(t *testing.T) {
 			assert.Equal(
 				t,
 				"contract_1",
-				action.Name,
+				action.Recipient,
 				"Assert name",
 			)
 			assert.Equal(
@@ -54,7 +54,7 @@ func TestUnmarshal_CallContractAction(t *testing.T) {
 			err := action.Unmarshal(
 				json.RawMessage(`
 					{
-						"name":			"contract 1",
+						"recipient":	"contract 1",
 						"sender":		"sender_name",
 						"amount":		10,
 						"parameter":	"Unit"
@@ -70,7 +70,7 @@ func TestUnmarshal_CallContractAction(t *testing.T) {
 			err := action.Unmarshal(
 				json.RawMessage(`
 					{
-						"name":			"contract_1",
+						"recipient":	"contract_1",
 						"sender":		"sender name",
 						"amount":		10,
 						"parameter":	"Unit"
@@ -86,7 +86,7 @@ func TestUnmarshal_CallContractAction(t *testing.T) {
 			err := action.Unmarshal(
 				json.RawMessage(`
 					{
-						"name":			"contract_1",
+						"recipient":	"contract_1",
 						"sender":		"sender_name",
 						"entrypoint":	"abcdefghijlmnopqrstuvxz123456789",
 						"amount":		10,
@@ -103,7 +103,7 @@ func TestUnmarshal_CallContractAction(t *testing.T) {
 			err := action.Unmarshal(
 				json.RawMessage(`
 					{
-						"name":			"contract_1",
+						"recipient":	"contract_1",
 						"sender":		"sender_name",
 						"entrypoint":	"a.a",
 						"amount":		10,
@@ -119,6 +119,6 @@ func TestUnmarshal_CallContractAction(t *testing.T) {
 			action := CallContractAction{}
 			err := action.Unmarshal(json.RawMessage(`{}`))
 			assert.NotNil(t, err, "Must fail (Missing fields)")
-			assert.Equal(t, err.Error(), "Action of kind (call_contract) misses the following fields [name, sender, entrypoint, parameter].", "Assert error message")
+			assert.Equal(t, err.Error(), "Action of kind (call_contract) misses the following fields [recipient, sender, entrypoint, parameter].", "Assert error message")
 		})
 }
