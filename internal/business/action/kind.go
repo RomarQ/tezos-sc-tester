@@ -4,6 +4,6 @@ type ActionKind string
 
 const (
 	CreateImplicitAccount ActionKind = "create_implicit_account"
-	OriginateContract                = "originate_contract"
-	CallContract                     = "call_contract"
+	OriginateContract     ActionKind = "originate_contract"
+	CallContract          ActionKind = "call_contract"
 )
