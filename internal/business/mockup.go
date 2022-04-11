@@ -20,6 +20,13 @@ type (
 		Kind       TezosClientArgumentKind
 		Parameters []string
 	}
+	CallContractArgument struct {
+		ContractName string
+		Source       string
+		Entrypoint   string
+		Parameter    string
+		Amount       float64
+	}
 	Mockup struct {
 		TaskID string
 		Config config.Config
@@ -36,6 +43,8 @@ const (
 	BurnCap
 	Fee
 	Init
+	Arg
+	Entrypoint
 )
 
 func InitMockup(taskID string, cfg config.Config) Mockup {
@@ -46,7 +55,7 @@ func InitMockup(taskID string, cfg config.Config) Mockup {
 }
 
 // Bootstrap a mockup environment for the task
-func (m *Mockup) Bootstrap() error {
+func (m Mockup) Bootstrap() error {
 	temporaryDirectory := m.getTaskDirectory()
 	logger.Debug("[Task #%s] - Creating task directory (%s).", m.TaskID, temporaryDirectory)
 
@@ -82,7 +91,7 @@ func (m *Mockup) Bootstrap() error {
 }
 
 // Clear task artifacts
-func (m *Mockup) Teardown() error {
+func (m Mockup) Teardown() error {
 	temporaryDirectory := m.getTaskDirectory()
 	logger.Debug("[Task #%s] - Deleting task directory (%s).", m.TaskID, temporaryDirectory)
 
@@ -90,7 +99,7 @@ func (m *Mockup) Teardown() error {
 }
 
 // Generate Wallet
-func (m *Mockup) GenerateWallet(walletName string) error {
+func (m Mockup) GenerateWallet(walletName string) error {
 	logger.Debug("[Task #%s] - Generating wallet (%s).", m.TaskID, walletName)
 
 	arguments := composeArguments(
@@ -116,7 +125,7 @@ func (m *Mockup) GenerateWallet(walletName string) error {
 	return err
 }
 
-func (m *Mockup) ImportSecret(privateKey string, walletName string) error {
+func (m Mockup) ImportSecret(privateKey string, walletName string) error {
 	logger.Debug("[Task #%s] - Importing secret key (%s).", m.TaskID, walletName)
 
 	arguments := composeArguments(
@@ -142,7 +151,7 @@ func (m *Mockup) ImportSecret(privateKey string, walletName string) error {
 	return err
 }
 
-func (m *Mockup) Transfer(amount float64, source string, recipient string) error {
+func (m Mockup) Transfer(amount float64, source string, recipient string) error {
 	logger.Debug("[Task #%s] - Transfering %dꜩ from %s to %s.", m.TaskID, amount, source, recipient)
 
 	arguments := composeArguments(
@@ -172,7 +181,53 @@ func (m *Mockup) Transfer(amount float64, source string, recipient string) error
 	return err
 }
 
-func (m *Mockup) RevealWallet(walletName string, revealFee float64) error {
+func (m Mockup) CallContract(arg CallContractArgument) error {
+	logger.Debug("[Task #%s] - Calling contract %s. %v", m.TaskID, arg.ContractName, arg)
+
+	args := make([]TezosClientArgument, 0)
+	args = append(
+		args,
+		TezosClientArgument{
+			Kind:       Mode,
+			Parameters: []string{"mockup"},
+		},
+		TezosClientArgument{
+			Kind:       BaseDirectory,
+			Parameters: []string{m.getTaskDirectory()},
+		},
+		TezosClientArgument{
+			Kind:       Protocol,
+			Parameters: []string{m.Config.Tezos.DefaultProtocol},
+		},
+		TezosClientArgument{
+			Kind:       COMMAND,
+			Parameters: []string{"transfer", fmt.Sprint(arg.Amount), "from", arg.Source, "to", arg.ContractName},
+		},
+		TezosClientArgument{
+			Kind:       Entrypoint,
+			Parameters: []string{arg.Entrypoint},
+		},
+		TezosClientArgument{
+			Kind:       Arg,
+			Parameters: []string{arg.Parameter},
+		},
+		TezosClientArgument{
+			Kind:       BurnCap,
+			Parameters: []string{"1"},
+		},
+	)
+
+	arguments := composeArguments(args...)
+
+	_, err := m.runTezosClient(m.getTezosClientPath(), arguments)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m Mockup) RevealWallet(walletName string, revealFee float64) error {
 	logger.Debug("[Task #%s] - Revealing wallet (%s).", m.TaskID, walletName)
 
 	arguments := composeArguments(
@@ -202,7 +257,7 @@ func (m *Mockup) RevealWallet(walletName string, revealFee float64) error {
 	return err
 }
 
-func (m *Mockup) GetBalance(name string) (float64, error) {
+func (m Mockup) GetBalance(name string) (float64, error) {
 	logger.Debug("[Task #%s] - Get balance of (%s).", m.TaskID, name)
 
 	arguments := composeArguments(
@@ -240,7 +295,7 @@ func (m *Mockup) GetBalance(name string) (float64, error) {
 	return strconv.ParseFloat(match[1], 64)
 }
 
-func (m *Mockup) Originate(sender string, contractName string, balance float64, code string, storage string) (string, error) {
+func (m Mockup) Originate(sender string, contractName string, balance float64, code string, storage string) (string, error) {
 	logger.Debug("[Task #%s] - Originating contract (%s).", m.TaskID, contractName)
 
 	arguments := composeArguments(
@@ -270,7 +325,7 @@ func (m *Mockup) Originate(sender string, contractName string, balance float64, 
 		},
 		TezosClientArgument{
 			Kind:       BurnCap,
-			Parameters: []string{"0.1"},
+			Parameters: []string{"1"},
 		},
 	)
 
@@ -290,7 +345,7 @@ func (m *Mockup) Originate(sender string, contractName string, balance float64, 
 }
 
 // Execute a "tezos-client" command
-func (m *Mockup) runTezosClient(command string, args []string) ([]byte, error) {
+func (m Mockup) runTezosClient(command string, args []string) ([]byte, error) {
 	cmd := exec.Command(command, args...)
 
 	var errBuffer bytes.Buffer
@@ -302,6 +357,7 @@ func (m *Mockup) runTezosClient(command string, args []string) ([]byte, error) {
 		if errBuffer.Len() > 0 {
 			msg := errBuffer.String()
 			logger.Error("Got the following error:\n\n%s\nwhen executing command: %s.", msg, cmd.Args)
+			err = fmt.Errorf(msg)
 		}
 		return nil, err
 	}
@@ -314,11 +370,11 @@ func (m *Mockup) runTezosClient(command string, args []string) ([]byte, error) {
 	return output, nil
 }
 
-func (m *Mockup) getTaskDirectory() string {
+func (m Mockup) getTaskDirectory() string {
 	return fmt.Sprintf("%s/_tmp/%s", m.Config.Tezos.BaseDirectory, m.TaskID)
 }
 
-func (m *Mockup) getTezosClientPath() string {
+func (m Mockup) getTezosClientPath() string {
 	return fmt.Sprintf("%s/%s", m.Config.Tezos.BaseDirectory, cmd_tezos_client)
 }
 
@@ -342,6 +398,10 @@ func composeArguments(args ...TezosClientArgument) []string {
 			arguments = append(arguments, "--fee")
 		case Init:
 			arguments = append(arguments, "--init")
+		case Arg:
+			arguments = append(arguments, "--arg")
+		case Entrypoint:
+			arguments = append(arguments, "--entrypoint")
 		}
 		arguments = append(arguments, argument.Parameters...)
 	}
