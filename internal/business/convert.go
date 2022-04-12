@@ -22,8 +22,8 @@ type (
 )
 
 var (
-	instructionRegex = regexp.MustCompile("^[0-9A-Z_]+$")
-	contractRoots    = []string{
+	regex_instruction = regexp.MustCompile("^[0-9A-Z_]+$")
+	contractRoots     = []string{
 		"storage",
 		"parameter",
 		"code",
@@ -178,7 +178,7 @@ func (json MichelsonJSON) supportsParenthesis() bool {
 		// Cannot be a contract root
 		!Contains(contractRoots, *json.Prim) &&
 		// Match type token regex
-		!instructionRegex.MatchString(*json.Prim)
+		!regex_instruction.MatchString(*json.Prim)
 }
 
 func unmarshal(raw json.RawMessage) (interface{}, error) {

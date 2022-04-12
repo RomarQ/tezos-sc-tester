@@ -29,8 +29,9 @@ type (
 		Amount     float64
 	}
 	Mockup struct {
-		TaskID string
-		Config config.Config
+		TaskID    string
+		Config    config.Config
+		Addresses map[string]string
 	}
 )
 
@@ -55,6 +56,13 @@ func InitMockup(taskID string, cfg config.Config) Mockup {
 	return Mockup{
 		TaskID: taskID,
 		Config: cfg,
+		Addresses: map[string]string{
+			"bootstrap1": "tz1",
+			"bootstrap2": "tz1",
+			"bootstrap3": "tz1",
+			"bootstrap4": "tz1",
+			"bootstrap5": "tz1",
+		},
 	}
 }
 
@@ -283,7 +291,7 @@ func (m Mockup) GetBalance(name string) (float64, error) {
 	return strconv.ParseFloat(match[1], 64)
 }
 
-func (m Mockup) Originate(sender string, contractName string, balance float64, code string, storage string) (string, error) {
+func (m *Mockup) Originate(sender string, contractName string, balance float64, code string, storage string) (string, error) {
 	logger.Debug("[Task #%s] - Originating contract (%s).", m.TaskID, contractName)
 
 	arguments := composeArguments(
@@ -329,7 +337,40 @@ func (m Mockup) Originate(sender string, contractName string, balance float64, c
 		return "", fmt.Errorf("Could not extract the contract address from origination output.")
 	}
 
+	m.GetContractStorage(match[1])
 	return match[1], nil
+}
+
+func (m Mockup) GetContractStorage(contractName string) (string, error) {
+	logger.Debug("[Task #%s] - Get storage from contract (%s).", m.TaskID, contractName)
+
+	arguments := composeArguments(
+		TezosClientArgument{
+			Kind:       Mode,
+			Parameters: []string{"mockup"},
+		},
+		TezosClientArgument{
+			Kind:       BaseDirectory,
+			Parameters: []string{m.getTaskDirectory()},
+		},
+		TezosClientArgument{
+			Kind:       Protocol,
+			Parameters: []string{m.Config.Tezos.DefaultProtocol},
+		},
+		TezosClientArgument{
+			Kind: COMMAND,
+			Parameters: []string{
+				"get", "contract", "storage", "for", contractName,
+			},
+		},
+	)
+
+	output, err := m.runTezosClient(m.getTezosClientPath(), arguments)
+	if err != nil {
+		return "", err
+	}
+
+	return output, nil
 }
 
 // Convert script format between "michelson" and "json"
@@ -356,6 +397,16 @@ func (m Mockup) ConvertScript(script string, from MichelsonFormat, to MichelsonF
 	)
 
 	return m.runTezosClient(m.getTezosClientPath(), arguments)
+}
+
+// Checks if address exists
+func (m Mockup) ContainsAddress(name string) bool {
+	return m.Addresses[name] != ""
+}
+
+// Set address
+func (m Mockup) SetAddress(name string, address string) {
+	m.Addresses[name] = address
 }
 
 // Convert data format between "michelson" and "json"

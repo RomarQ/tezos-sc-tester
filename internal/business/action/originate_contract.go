@@ -30,8 +30,12 @@ func (action *OriginateContractAction) Unmarshal(bytes json.RawMessage) error {
 	return action.validate()
 }
 
-// Perform the action
+// Perform action (Originates a contract)
 func (action OriginateContractAction) Run(mockup business.Mockup) ActionResult {
+	if mockup.ContainsAddress(action.Name) {
+		return action.buildFailureResult(fmt.Sprintf("Name (%s) is already in use.", action.Name))
+	}
+
 	codeMicheline, err := business.MichelineOfJSON(action.Code)
 	if err != nil {
 		msg := fmt.Sprintf("Could not convert code from %s to %s.", business.JSON, business.Michelson)
@@ -48,6 +52,9 @@ func (action OriginateContractAction) Run(mockup business.Mockup) ActionResult {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
 		return action.buildFailureResult("Could not originate contract.")
 	}
+
+	// Save new address
+	mockup.SetAddress(action.Name, address)
 
 	return action.buildSuccessResult(map[string]interface{}{
 		"address": address,

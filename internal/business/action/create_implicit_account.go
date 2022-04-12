@@ -28,8 +28,12 @@ func (action *CreateImplicitAccountAction) Unmarshal(bytes json.RawMessage) erro
 	return action.validate()
 }
 
-// Perform the action
+// Perform action (Creates an implicit account)
 func (action CreateImplicitAccountAction) Run(mockup business.Mockup) ActionResult {
+	if mockup.ContainsAddress(action.Name) {
+		return action.buildFailureResult(fmt.Sprintf("Name (%s) is already in use.", action.Name))
+	}
+
 	keyPair, err := business.GenerateKey()
 	if err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
@@ -70,6 +74,9 @@ func (action CreateImplicitAccountAction) Run(mockup business.Mockup) ActionResu
 		err := fmt.Sprintf("Account balance mismatch %f <> %f.", action.Balance, walletBalance)
 		return action.buildFailureResult(err)
 	}
+
+	// Save new address
+	mockup.SetAddress(action.Name, address)
 
 	return action.buildSuccessResult(map[string]interface{}{
 		"address": address,
