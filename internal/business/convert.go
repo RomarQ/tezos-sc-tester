@@ -100,48 +100,28 @@ func toMichelineAnnots(annots []string) string {
 
 func toMichelinePrim(json MichelsonJSON) (string, error) {
 	if json.Prim == nil {
-		return "", fmt.Errorf("Invalid prim.")
+		return "", fmt.Errorf("Invalid (prim): %v", utils.PrettifyJSON(json))
 	}
-	prim := *json.Prim
 
-	switch prim {
-	case "storage":
-		fallthrough
-	case "parameter":
-		fallthrough
-	case "code":
-		args, err := toMicheline(json.Args[0])
+	tokens := []string{*json.Prim}
+	if len(json.Annots) > 0 {
+		tokens = append(tokens, toMichelineAnnots(json.Annots))
+	}
+
+	for _, raw := range json.Args {
+		token, err := toMicheline(raw)
 		if err != nil {
 			return "", err
 		}
-		return fmt.Sprintf("%s %s", prim, args), nil
-	default:
-		tokens := []string{prim}
-
-		annots := toMichelineAnnots(json.Annots)
-		if annots != "" {
-			tokens = append(tokens, toMichelineAnnots(json.Annots))
-		}
-
-		for _, raw := range json.Args {
-			token, err := toMicheline(raw)
-			if err != nil {
-				return "", err
-			}
-			tokens = append(tokens, token)
-		}
-
-		format := "%s"
-		if json.supportsParenthesis() {
-			if len(tokens) > 1 {
-				format = "(%s)"
-			}
-
-		}
-
-		return fmt.Sprintf(format, strings.Join(tokens, " ")), nil
+		tokens = append(tokens, token)
 	}
 
+	format := "%s"
+	if json.supportsParenthesis() && len(tokens) > 1 {
+		format = "(%s)"
+	}
+
+	return fmt.Sprintf(format, strings.Join(tokens, " ")), nil
 }
 
 func toMicheline(raw json.RawMessage) (string, error) {
