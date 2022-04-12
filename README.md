@@ -2,22 +2,22 @@
 
 [![CI](https://github.com/RomarQ/visualtez-testing/actions/workflows/pipeline.yaml/badge.svg)](https://github.com/RomarQ/visualtez-testing/actions/workflows/pipeline.yaml)
 
-## Install
+## Install dependencies and compile application
 
 ```sh
 make
 ```
 
-## Run
+## Start the application
 
 ```sh
 make start
 ```
 
-## Compile
+## Run Tests
 
 ```sh
-make build
+make test
 ```
 
 ### Configuration

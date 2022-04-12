@@ -31,7 +31,7 @@ build-%:
 	    GOOS=$(firstword $(subst -, ,$*)) \
 	    GOARCH=$(lastword $(subst -, ,$*))
 
-build: $(foreach bin, $(BIN), bin/$(OS)_$(ARCH)/$(bin).build)
+build: install $(foreach bin, $(BIN), bin/$(OS)_$(ARCH)/$(bin).build)
 
 bin/%.build: $(BUILD_DIRS)
 	@sh -c "ARCH=$(ARCH) OS=$(OS) VERSION=$(VERSION) ./scripts/build.sh"
