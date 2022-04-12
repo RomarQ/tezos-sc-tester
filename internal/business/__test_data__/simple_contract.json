@@ -1,0 +1,38 @@
+[
+    {
+        "prim": "storage",
+        "args": [
+            { "prim": "unit" }
+        ]
+    },
+    {
+        "prim": "parameter",
+        "args": [
+            {
+                "prim": "unit",
+                "annots": [
+                    "%do_something"
+                ]
+            }
+
+        ]
+    },
+    {
+        "prim": "code",
+        "args": [
+            [
+                { "prim": "DROP" },
+                { "prim": "UNIT" },
+                {
+                    "prim": "NIL",
+                    "args": [
+                        {
+                            "prim": "operation"
+                        }
+                    ]
+                },
+                { "prim": "PAIR" }
+            ]
+        ]
+    }
+]

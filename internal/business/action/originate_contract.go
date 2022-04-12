@@ -32,12 +32,12 @@ func (action *OriginateContractAction) Unmarshal(bytes json.RawMessage) error {
 
 // Perform the action
 func (action OriginateContractAction) Run(mockup business.Mockup) ActionResult {
-	codeMicheline, err := mockup.ConvertScript(string(action.Code), business.JSON, business.Michelson)
+	codeMicheline, err := business.MichelineOfJSON(action.Code)
 	if err != nil {
 		msg := fmt.Sprintf("Could not convert code from %s to %s.", business.JSON, business.Michelson)
 		return action.buildFailureResult(msg)
 	}
-	storageMicheline, err := mockup.ConvertData(string(action.Storage), business.JSON, business.Michelson)
+	storageMicheline, err := business.MichelineOfJSON(action.Storage)
 	if err != nil {
 		msg := fmt.Sprintf("Could not convert storage from %s to %s.", business.JSON, business.Michelson)
 		return action.buildFailureResult(msg)
