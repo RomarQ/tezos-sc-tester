@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/romarq/visualtez-testing/internal/business"
+	"github.com/romarq/visualtez-testing/internal/business/michelson"
 	"github.com/romarq/visualtez-testing/internal/logger"
 )
 
@@ -36,12 +37,12 @@ func (action OriginateContractAction) Run(mockup business.Mockup) ActionResult {
 		return action.buildFailureResult(fmt.Sprintf("Name (%s) is already in use.", action.Name))
 	}
 
-	codeMicheline, err := business.MichelineOfJSON(action.Code)
+	codeMicheline, err := michelson.MichelineOfJSON(action.Code)
 	if err != nil {
 		msg := fmt.Sprintf("Could not convert code from %s to %s.", business.JSON, business.Michelson)
 		return action.buildFailureResult(msg)
 	}
-	storageMicheline, err := business.MichelineOfJSON(action.Storage)
+	storageMicheline, err := michelson.MichelineOfJSON(action.Storage)
 	if err != nil {
 		msg := fmt.Sprintf("Could not convert storage from %s to %s.", business.JSON, business.Michelson)
 		return action.buildFailureResult(msg)

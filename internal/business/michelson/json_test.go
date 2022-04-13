@@ -1,4 +1,4 @@
-package business
+package michelson
 
 import (
 	"encoding/json"
@@ -37,7 +37,7 @@ func TestMichelineOfJSON(t *testing.T) {
 		assert.Equal(t, micheline, "{ 1 ; 2 }", "Verify micheline")
 	})
 	t.Run("Convert JSON to Micheline (Contract)", func(t *testing.T) {
-		bytes, err := getFileContent("__test_data__/simple_contract.json")
+		bytes, err := getTestData("simple_contract.json")
 		assert.NoError(t, err)
 		micheline, err := MichelineOfJSON(json.RawMessage(bytes))
 		assert.Nil(t, err, "Must not fail")
@@ -45,9 +45,9 @@ func TestMichelineOfJSON(t *testing.T) {
 	})
 	t.Run("Convert JSON to Micheline (Contract with multiple entrypoints)",
 		func(t *testing.T) {
-			jsonBytes, err := getFileContent("__test_data__/contract_with_multiply_entrypoints.json")
+			jsonBytes, err := getTestData("contract_with_multiply_entrypoints.json")
 			assert.NoError(t, err)
-			michelineBytes, err := getFileContent("__test_data__/contract_with_multiply_entrypoints.tz")
+			michelineBytes, err := getTestData("contract_with_multiply_entrypoints.tz")
 			assert.NoError(t, err)
 			micheline, err := MichelineOfJSON(json.RawMessage(jsonBytes))
 			assert.Nil(t, err, "Must not fail")
@@ -55,20 +55,19 @@ func TestMichelineOfJSON(t *testing.T) {
 		})
 	t.Run("Convert JSON to Micheline (FA2 Contract)",
 		func(t *testing.T) {
-			jsonBytes, err := getFileContent("__test_data__/fa2_contract.json")
+			jsonBytes, err := getTestData("fa2_contract.json")
 			assert.NoError(t, err)
-			michelineBytes, err := getFileContent("__test_data__/fa2_contract.tz")
+			michelineBytes, err := getTestData("fa2_contract.tz")
 			assert.NoError(t, err)
 			micheline, err := MichelineOfJSON(json.RawMessage(jsonBytes))
 			assert.Nil(t, err, "Must not fail")
 			assert.Equal(t, []byte(micheline), michelineBytes, "Decode JSON to Micheline")
-			saveSnapshot("fa2_contract.tz", []byte(micheline))
 		})
 }
 
-func getFileContent(filePath string) ([]byte, error) {
+func getTestData(fileName string) ([]byte, error) {
 	wd, _ := os.Getwd()
-	contract_file_path := path.Join(wd, filePath)
+	contract_file_path := path.Join(wd, "__test_data__", fileName)
 	contract_file, err := os.Open(contract_file_path)
 	if err != nil {
 		return nil, err

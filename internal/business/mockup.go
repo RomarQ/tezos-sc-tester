@@ -337,7 +337,6 @@ func (m *Mockup) Originate(sender string, contractName string, balance float64, 
 		return "", fmt.Errorf("Could not extract the contract address from origination output.")
 	}
 
-	m.GetContractStorage(match[1])
 	return match[1], nil
 }
 

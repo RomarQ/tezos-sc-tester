@@ -20,12 +20,3 @@ func ValidateString(regex string, name string) error {
 
 	return nil
 }
-
-func Contains[T comparable](list []T, x T) bool {
-	for _, item := range list {
-		if item == x {
-			return true
-		}
-	}
-	return false
-}

@@ -1,9 +1,8 @@
-package business
+package michelson
 
 import (
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/romarq/visualtez-testing/pkg/utils"
@@ -18,16 +17,6 @@ type (
 		Bool   *string           `json:"bool,omitempty"`
 		Args   []json.RawMessage `json:"args,omitempty"`
 		Annots []string          `json:"annots,omitempty"`
-	}
-)
-
-var (
-	regex_instruction = regexp.MustCompile("^[0-9A-Z_]+$")
-	contractRoots     = []string{
-		"storage",
-		"parameter",
-		"code",
-		"view",
 	}
 )
 
@@ -156,9 +145,9 @@ func toMicheline(raw json.RawMessage) (string, error) {
 func (json MichelsonJSON) supportsParenthesis() bool {
 	return json.isPrim() &&
 		// Cannot be a contract root
-		!Contains(contractRoots, *json.Prim) &&
+		!utils.Contains(reserved_words, *json.Prim) &&
 		// Match type token regex
-		!regex_instruction.MatchString(*json.Prim)
+		!isInstruction(*json.Prim)
 }
 
 func unmarshal(raw json.RawMessage) (interface{}, error) {
