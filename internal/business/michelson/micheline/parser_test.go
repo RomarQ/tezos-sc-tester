@@ -112,6 +112,25 @@ func TestParseContracts(t *testing.T) {
 				`,
 				Output: "Sequence([Prim(storage, [], [Prim(unit, [], [])]), Prim(parameter, [], [Prim(unit, [], [])]), Prim(code, [], [Sequence([Prim(DROP, [], []), Prim(UNIT, [], []), Prim(NIL, [], [Prim(operation, [], [])]), Prim(PAIR, [], [])])]), Prim(view, [], [String(view1), Prim(unit, [], [Prim(unit, [], [Sequence([])])])])])",
 			},
+			{
+				Input: `
+				{
+					storage (unit %abc);
+					parameter (unit %ep);
+					code {
+						DROP;
+						UNIT;
+						NIL operation;
+						PAIR;
+					};
+					view "view1" unit (pair int int) {
+						DROP;
+						PUSH (pair int int) (Pair 1 1)
+					}
+				}
+				`,
+				Output: "Sequence([Prim(storage, [], [Prim(unit, [%abc], [])]), Prim(parameter, [], [Prim(unit, [%ep], [])]), Prim(code, [], [Sequence([Prim(DROP, [], []), Prim(UNIT, [], []), Prim(NIL, [], [Prim(operation, [], [])]), Prim(PAIR, [], [])])]), Prim(view, [], [String(view1), Prim(unit, [], [Prim(pair, [], [Prim(int, [], [Prim(int, [], [])])])])]), Sequence([Prim(DROP, [], []), Prim(PUSH, [], [Prim(pair, [], [Prim(int, [], [Prim(int, [], [])])])]), Prim(Pair, [], [Int(1), Int(1)])])])",
+			},
 		})
 	})
 }

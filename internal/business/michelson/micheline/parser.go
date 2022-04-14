@@ -196,6 +196,9 @@ func (p *Parser) parsePrim() ast.Prim {
 		case token.Int:
 			arguments = append(arguments, p.parseInt())
 			continue
+		case token.Open_paren:
+			arguments = append(arguments, p.parseParenthesis())
+			continue
 		case token.Identifier:
 			arguments = append(arguments, p.parsePrim())
 			continue
@@ -215,6 +218,23 @@ func (p *Parser) parsePrim() ast.Prim {
 		Annotations: annotations,
 		Arguments:   arguments,
 	}
+}
+
+func (p *Parser) parseParenthesis() ast.Prim {
+	begin := p.expect(token.Open_paren)
+
+	p.next() // Consume next token
+	if p.token_kind != token.Identifier {
+		p.scanner.errorf("Expected token (%s), but received (%s).", token.Identifier.String(), p.token_kind.String())
+	}
+
+	node := p.parsePrim()
+	end := p.expect(token.Close_paren)
+
+	node.Position.Pos = begin
+	node.Position.End = end
+
+	return node
 }
 
 func (p *Parser) parseAnnotation() ast.Annotation {
