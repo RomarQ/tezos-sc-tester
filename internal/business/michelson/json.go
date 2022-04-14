@@ -14,7 +14,6 @@ type (
 		Int    *string           `json:"int,omitempty"`
 		String *string           `json:"string,omitempty"`
 		Bytes  *string           `json:"bytes,omitempty"`
-		Bool   *string           `json:"bool,omitempty"`
 		Args   []json.RawMessage `json:"args,omitempty"`
 		Annots []string          `json:"annots,omitempty"`
 	}
@@ -33,9 +32,6 @@ func (json MichelsonJSON) isString() bool {
 }
 func (json MichelsonJSON) isBytes() bool {
 	return json.Bytes != nil
-}
-func (json MichelsonJSON) isBool() bool {
-	return json.Bool != nil
 }
 func (json MichelsonJSON) isPrim() bool {
 	return json.Prim != nil
@@ -64,12 +60,6 @@ func toMichelineBytes(json MichelsonJSON) (string, error) {
 		return "", fmt.Errorf("Expected (Bytes), but received: %v", utils.PrettifyJSON(json))
 	}
 	return *json.Bytes, nil
-}
-func toMichelineBool(json MichelsonJSON) (string, error) {
-	if json.Bool == nil {
-		return "", fmt.Errorf("Expected (Bool), but received: %v", utils.PrettifyJSON(json))
-	}
-	return *json.Bool, nil
 }
 func toMichelineSeq(seq []json.RawMessage) (string, error) {
 	elements := make([]string, 0)
@@ -129,9 +119,6 @@ func toMicheline(raw json.RawMessage) (string, error) {
 		}
 		if json.isBytes() {
 			return toMichelineBytes(json)
-		}
-		if json.isBool() {
-			return toMichelineBool(json)
 		}
 
 		return toMichelinePrim(json)

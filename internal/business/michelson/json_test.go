@@ -21,11 +21,6 @@ func TestMichelineOfJSON(t *testing.T) {
 		assert.Nil(t, err, "Must not fail")
 		assert.Equal(t, micheline, "\"Hello World\"", "Verify micheline")
 	})
-	t.Run("Convert JSON to Micheline (Bool)", func(t *testing.T) {
-		micheline, err := MichelineOfJSON(json.RawMessage(`{ "bool": "True" }`))
-		assert.Nil(t, err, "Must not fail")
-		assert.Equal(t, micheline, "True", "Verify micheline")
-	})
 	t.Run("Convert JSON to Micheline (Bytes)", func(t *testing.T) {
 		micheline, err := MichelineOfJSON(json.RawMessage(`{ "bytes": "0x01" }`))
 		assert.Nil(t, err, "Must not fail")
