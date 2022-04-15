@@ -16,50 +16,51 @@ type Parser struct {
 func (p *Parser) Parse(raw []byte) ast.Node {
 	r, err := unmarshal(raw)
 	if err != nil {
-		p.errorf("Could not deserialize json: %s", err)
+		p.errorf("Could not deserialize JSON: %s", err)
 	}
 
 	switch obj := r.(type) {
 	case MichelsonJSON:
-		if obj.isInt() {
+		switch {
+		case obj.isInt():
 			return ast.Int{
 				Value: obj.Int,
 			}
-		}
-		if obj.isString() {
+		case obj.isString():
 			return ast.String{
 				Value: obj.String,
 			}
-		}
-		if obj.isBytes() {
+		case obj.isBytes():
 			return ast.Bytes{
 				Value: obj.Bytes,
 			}
-		}
-
-		annotations := make([]ast.Annotation, len(obj.Annots))
-		for i, el := range obj.Annots {
-			annotations[i] = p.parseAnnotation(el)
-		}
-		arguments := make([]ast.Node, len(obj.Args))
-		for i, el := range obj.Args {
-			o, err := json.Marshal(el)
-			if err != nil {
-				p.errorf("%v", err)
+		case obj.isPrim():
+			annotations := make([]ast.Annotation, len(obj.Annots))
+			for i, el := range obj.Annots {
+				annotations[i] = p.parseAnnotation(el)
 			}
-			arguments[i] = p.Parse(o)
-		}
-		return ast.Prim{
-			Prim:        obj.Prim,
-			Annotations: annotations,
-			Arguments:   arguments,
+			arguments := make([]ast.Node, len(obj.Args))
+			for i, el := range obj.Args {
+				o, err := json.Marshal(el)
+				if err != nil {
+					p.errorf("Could not parse argument of prim. %v", err)
+					break
+				}
+				arguments[i] = p.Parse(o)
+			}
+			return ast.Prim{
+				Prim:        obj.Prim,
+				Annotations: annotations,
+				Arguments:   arguments,
+			}
 		}
 	case []json.RawMessage:
 		elements := make([]ast.Node, len(obj))
 		for i, el := range obj {
 			o, err := json.Marshal(el)
 			if err != nil {
-				p.errorf("%v", err)
+				p.errorf("Could not parse element of sequence. %v", err)
+				break
 			}
 			elements[i] = p.Parse(o)
 		}
@@ -80,28 +81,26 @@ func (p *Parser) Error() error {
 	return fmt.Errorf(strings.Join(p.errors, ";\n"))
 }
 
-func (p *Parser) parseAnnotation(annot string) ast.Annotation {
+func (p *Parser) parseAnnotation(annot string) (annotation ast.Annotation) {
+	annotation.Value = annot
+
 	if len(annot) == 0 {
 		p.errorf("Unexpected empty annotation.")
+		return
 	}
-
-	var annotationKind ast.AnnotationKind
 
 	switch annot[0] {
 	case ':':
-		annotationKind = ast.TypeAnnotation
+		annotation.Kind = ast.TypeAnnotation
 	case '@':
-		annotationKind = ast.VariableAnnotation
+		annotation.Kind = ast.VariableAnnotation
 	case '%':
-		annotationKind = ast.FieldAnnotation
+		annotation.Kind = ast.FieldAnnotation
 	default:
 		p.errorf("Unexpected annotation: (%s)", annot)
 	}
 
-	return ast.Annotation{
-		Kind:  annotationKind,
-		Value: annot,
-	}
+	return
 }
 
 func (p *Parser) errorf(format string, args ...interface{}) {

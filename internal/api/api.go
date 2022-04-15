@@ -54,14 +54,12 @@ func (api *TestingAPI) RunTest(ctx echo.Context) error {
 	// Teardown on exit
 	defer mockup.Teardown()
 
-	// Boostrap mockup
+	// Bootstrap mockup
 	err = mockup.Bootstrap()
 	if err != nil {
 		Logger.Debug("Something went wrong: %s", err)
 		return Error.HttpError(http.StatusInternalServerError, "Could not bootstrap test environment.")
 	}
-
-	Logger.Debug("%s %v", fmt.Sprintf("%d", prime), actions)
 
 	return ctx.JSON(http.StatusOK, Action.ApplyActions(mockup, actions))
 }

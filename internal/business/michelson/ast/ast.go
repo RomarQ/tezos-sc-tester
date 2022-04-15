@@ -5,43 +5,36 @@ import (
 	"strings"
 )
 
-type Node interface {
-	String() string
-}
-
-type Position struct {
-	Pos int
-	End int
-}
-
-type Int struct {
-	Position
-	Value string
-}
-
-type String struct {
-	Position
-	Value string
-}
-
-type Bytes struct {
-	Position
-	Value string
-}
-
-type Sequence struct {
-	Position
-	Elements []Node // list of elements in the sequence
-}
-
-type Prim struct {
-	Position
-	Prim        string
-	Annotations []Annotation
-	Arguments   []Node
-}
-
 type (
+	Node interface {
+		String() string
+	}
+	Position struct {
+		Pos int
+		End int
+	}
+	Int struct {
+		Position
+		Value string
+	}
+	String struct {
+		Position
+		Value string
+	}
+	Bytes struct {
+		Position
+		Value string
+	}
+	Sequence struct {
+		Position
+		Elements []Node // list of elements in the sequence
+	}
+	Prim struct {
+		Position
+		Prim        string
+		Annotations []Annotation
+		Arguments   []Node
+	}
 	AnnotationKind uint8
 	Annotation     struct {
 		Position

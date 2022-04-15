@@ -23,6 +23,7 @@ type LogConfig struct {
 	Level    logger.LogLevel `yaml:"level,omitempty"`
 }
 
+// TezosConfig holds tezos configurations
 type TezosConfig struct {
 	BaseDirectory   string `yaml:"dir,omitempty"`
 	DefaultProtocol string `yaml:"default_protocol,omitempty"`
