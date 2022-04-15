@@ -3,16 +3,11 @@ package micheline
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/romarq/visualtez-testing/internal/business/michelson/ast"
 	"github.com/romarq/visualtez-testing/internal/business/michelson/micheline/token"
 )
-
-type Error struct {
-	Message string
-}
 
 type Parser struct {
 	token_position int
@@ -25,7 +20,7 @@ type Parser struct {
 }
 
 var (
-	regex_hex    = regexp.MustCompile("^0x[0-9a-fA-F]+$")
+	regex_bytes  = regexp.MustCompile("^0x[0-9a-fA-F]+$")
 	regex_number = regexp.MustCompile("^-?[0-9]+$")
 )
 
@@ -85,7 +80,10 @@ func (p *Parser) parseBytes() ast.Bytes {
 	position := p.expect(token.Bytes)
 	defer p.next() // Consume next token
 
-	if !isHex(p.token_text) || len(p.token_text)%2 != 0 {
+	bytes := p.token_text
+	if isBytes(p.token_text) || len(p.token_text)%2 == 0 {
+		bytes = p.token_text[2:]
+	} else {
 		p.scanner.errorf("Invalid bytes: %s. %v", p.token_text, position)
 	}
 
@@ -94,7 +92,7 @@ func (p *Parser) parseBytes() ast.Bytes {
 			Pos: position,
 			End: position + len(p.token_text) - 1,
 		},
-		Value: p.token_text,
+		Value: bytes,
 	}
 }
 
@@ -125,8 +123,7 @@ func (p *Parser) parseInt() ast.Int {
 	position := p.expect(token.Int)
 	defer p.next() // Consume next token
 
-	number, err := strconv.ParseInt(p.token_text, 10, 64)
-	if err != nil {
+	if !isNumber(p.token_text) {
 		p.scanner.errorf("Invalid number: %s. %v", p.token_text, position)
 	}
 
@@ -135,7 +132,7 @@ func (p *Parser) parseInt() ast.Int {
 			Pos: position,
 			End: position + len(p.token_text) - 1,
 		},
-		Value: number,
+		Value: p.token_text,
 	}
 }
 
@@ -275,17 +272,21 @@ func (p *Parser) parseAnnotation() ast.Annotation {
 	position := p.expect(token.Annot)
 
 	var annotationKind ast.AnnotationKind
-	switch p.token_text[0] {
-	case ':':
-		annotationKind = ast.TypeAnnotation
-	case '@':
-		annotationKind = ast.VariableAnnotation
-	case '%':
-		annotationKind = ast.FieldAnnotation
-	default:
-		p.scanner.errorf("Unexpected annotation: (%s)", p.token_text)
-	}
 
+	if len(p.token_text) == 0 {
+		p.scanner.errorf("Unexpected empty")
+	} else {
+		switch p.token_text[0] {
+		case ':':
+			annotationKind = ast.TypeAnnotation
+		case '@':
+			annotationKind = ast.VariableAnnotation
+		case '%':
+			annotationKind = ast.FieldAnnotation
+		default:
+			p.scanner.errorf("Unexpected annotation: (%s)", p.token_text)
+		}
+	}
 	return ast.Annotation{
 		Position: ast.Position{
 			Pos: position,
@@ -305,5 +306,5 @@ func (p *Parser) expect(kind token.Kind) (pos int) {
 	return
 }
 
-func isHex(text string) bool    { return regex_hex.MatchString(text) }
+func isBytes(text string) bool  { return regex_bytes.MatchString(text) }
 func isNumber(text string) bool { return regex_number.MatchString(text) }

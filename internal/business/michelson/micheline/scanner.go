@@ -8,6 +8,9 @@ import (
 )
 
 type (
+	Error struct {
+		Message string
+	}
 	Scanner struct {
 		// immutable state
 		source string

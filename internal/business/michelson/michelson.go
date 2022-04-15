@@ -19,5 +19,10 @@ func JSONOfMicheline(michelsonMicheline string) (json.RawMessage, error) {
 
 // MichelineOfJSON converts Michelson from "json" to "micheline" format
 func MichelineOfJSON(michelsonJSON json.RawMessage) (string, error) {
-	return MichelsonJSON.MichelineOfJSON(michelsonJSON)
+	parser := MichelsonJSON.Parser{}
+	ast := parser.Parse(michelsonJSON)
+	if parser.HasErrors() {
+		return "", parser.Error()
+	}
+	return micheline.Print(ast), nil
 }

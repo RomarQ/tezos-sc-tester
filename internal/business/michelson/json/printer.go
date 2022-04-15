@@ -2,7 +2,6 @@ package json
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/romarq/visualtez-testing/internal/business/michelson/ast"
 )
@@ -16,9 +15,9 @@ func translateAST(n ast.Node) interface{} {
 
 	switch node := n.(type) {
 	case ast.Bytes:
-		obj = MichelsonJSON{Bytes: node.Value[2:]}
+		obj = MichelsonJSON{Bytes: node.Value}
 	case ast.Int:
-		obj = MichelsonJSON{Int: fmt.Sprint(node.Value)}
+		obj = MichelsonJSON{Int: node.Value}
 	case ast.String:
 		obj = MichelsonJSON{String: node.Value}
 	case ast.Prim:

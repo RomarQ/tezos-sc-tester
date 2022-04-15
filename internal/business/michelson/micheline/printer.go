@@ -11,9 +11,9 @@ import (
 func Print(n ast.Node) (micheline string) {
 	switch node := n.(type) {
 	case ast.Bytes:
-		micheline = node.Value
+		micheline = fmt.Sprintf("0x%s", node.Value)
 	case ast.Int:
-		micheline = fmt.Sprint(node.Value)
+		micheline = node.Value
 	case ast.String:
 		micheline = fmt.Sprintf(`"%s"`, node.Value)
 	case ast.Prim:

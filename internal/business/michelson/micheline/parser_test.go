@@ -39,15 +39,15 @@ func TestParseValues(t *testing.T) {
 		runTests(t, []test{
 			{
 				Input:  `0x01`,
-				Output: `Bytes(0x01)`,
+				Output: `Bytes(01)`,
 			},
 			{
 				Input:  `0x01ab`,
-				Output: `Bytes(0x01ab)`,
+				Output: `Bytes(01ab)`,
 			},
 			{
 				Input:  `0xabcd`,
-				Output: `Bytes(0xabcd)`,
+				Output: `Bytes(abcd)`,
 			},
 		})
 	})
