@@ -1,0 +1,7 @@
+port: 5000
+tezos:
+  dir: /opt/tezos
+  default_protocol: ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK
+log:
+  location: /var/tezos/api.log
+  level: debug

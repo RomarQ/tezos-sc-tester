@@ -20,6 +20,12 @@ make start
 make test
 ```
 
+## Run docker container
+
+```sh
+docker run --rm ghcr.io/romarq/visualtez-testing
+```
+
 ### Configuration
 
 The configuration can be modified at [./config](./config).

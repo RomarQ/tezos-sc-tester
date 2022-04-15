@@ -8,6 +8,7 @@ ALL_PLATFORMS := linux/amd64 linux/arm64
 
 OS := $(if $(GOOS),$(GOOS),$(shell go env GOOS))
 ARCH := $(if $(GOARCH),$(GOARCH),$(shell go env GOARCH))
+DOCKER_REPO := "ghcr.io/romarq/visualtez-testing"
 
 all: install build
 
@@ -32,6 +33,14 @@ build-%:
 	    GOARCH=$(lastword $(subst -, ,$*))
 
 build: install $(foreach bin, $(BIN), bin/$(OS)_$(ARCH)/$(bin).build)
+
+docker-build: build
+	@docker build --tag $(DOCKER_REPO):$(VERSION) .
+	@docker build --tag $(DOCKER_REPO):latest .
+
+docker-push: docker-build
+	@docker push $(DOCKER_REPO):$(VERSION)
+	@docker push $(DOCKER_REPO):latest
 
 bin/%.build: $(BUILD_DIRS)
 	@sh -c "ARCH=$(ARCH) OS=$(OS) VERSION=$(VERSION) ./scripts/build.sh"
