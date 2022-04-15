@@ -38,7 +38,7 @@ export GO111MODULE=on
 export GOFLAGS="-mod=vendor"
 
 go build -o "${PWD}/bin/${OS}_${ARCH}"                            \
-    -buildvcs=false                                             \
-    -installsuffix "static"                                     \
-    -ldflags "-X $(go list -m)/pkg/version.VERSION=${VERSION}"  \
+    -buildvcs=false                                               \
+    -installsuffix "static"                                       \
+    -ldflags "-X 'main.VERSION=${VERSION}'" \
     ./...

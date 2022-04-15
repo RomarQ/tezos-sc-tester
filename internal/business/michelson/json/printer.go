@@ -6,6 +6,7 @@ import (
 	"github.com/romarq/visualtez-testing/internal/business/michelson/ast"
 )
 
+// Print prints the JSON representation of Michelson
 func Print(n ast.Node, prefix string, indent string) (json.RawMessage, error) {
 	return json.MarshalIndent(translateAST(n), prefix, indent)
 }

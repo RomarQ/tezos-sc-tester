@@ -6,32 +6,39 @@ import (
 	"strings"
 
 	"github.com/romarq/visualtez-testing/internal/business/michelson/ast"
-	"github.com/romarq/visualtez-testing/pkg/utils"
+	"github.com/romarq/visualtez-testing/internal/utils"
 )
 
 type Parser struct {
 	errors []string
 }
 
-func (p *Parser) Parse(raw []byte) ast.Node {
+// Parse parses raw JSON into a Michelson AST
+func (p *Parser) Parse(raw []byte) (node ast.Node, err error) {
+	defer func() {
+		if len(p.errors) > 0 {
+			err = fmt.Errorf(strings.Join(p.errors, ";\n"))
+		}
+	}()
+
 	r, err := unmarshal(raw)
 	if err != nil {
-		p.errorf("Could not deserialize JSON: %s", err)
+		p.errorf("could not deserialize JSON: %s.", err)
 	}
 
 	switch obj := r.(type) {
 	case MichelsonJSON:
 		switch {
 		case obj.isInt():
-			return ast.Int{
+			node = ast.Int{
 				Value: obj.Int,
 			}
 		case obj.isString():
-			return ast.String{
+			node = ast.String{
 				Value: obj.String,
 			}
 		case obj.isBytes():
-			return ast.Bytes{
+			node = ast.Bytes{
 				Value: obj.Bytes,
 			}
 		case obj.isPrim():
@@ -43,42 +50,38 @@ func (p *Parser) Parse(raw []byte) ast.Node {
 			for i, el := range obj.Args {
 				o, err := json.Marshal(el)
 				if err != nil {
-					p.errorf("Could not parse argument of prim. %v", err)
+					p.errorf("could not parse argument of prim: %s.", err)
 					break
 				}
-				arguments[i] = p.Parse(o)
+				arguments[i], _ = p.Parse(o)
 			}
-			return ast.Prim{
+			node = ast.Prim{
 				Prim:        obj.Prim,
 				Annotations: annotations,
 				Arguments:   arguments,
 			}
+		default:
+			p.errorf("unexpected Michelson JSON: %s.", utils.PrettifyJSON(raw))
 		}
 	case []json.RawMessage:
 		elements := make([]ast.Node, len(obj))
 		for i, el := range obj {
 			o, err := json.Marshal(el)
 			if err != nil {
-				p.errorf("Could not parse element of sequence. %v", err)
+				p.errorf("could not parse element of sequence: %s.", err)
 				break
 			}
-			elements[i] = p.Parse(o)
+			elements[i], _ = p.Parse(o)
 		}
-		return ast.Sequence{
+		node = ast.Sequence{
 			Elements: elements,
 		}
+	default:
+		p.errorf("unexpected Michelson JSON: %s.", utils.PrettifyJSON(raw))
 	}
 
-	p.errorf("Unexpected Michelson JSON: %s", utils.PrettifyJSON(raw))
-	return nil
-}
-
-func (p *Parser) HasErrors() bool {
-	return len(p.errors) > 0
-}
-
-func (p *Parser) Error() error {
-	return fmt.Errorf(strings.Join(p.errors, ";\n"))
+	// Errors found during parsing will be aggregated on defer
+	return
 }
 
 func (p *Parser) parseAnnotation(annot string) (annotation ast.Annotation) {
@@ -97,7 +100,7 @@ func (p *Parser) parseAnnotation(annot string) (annotation ast.Annotation) {
 	case '%':
 		annotation.Kind = ast.FieldAnnotation
 	default:
-		p.errorf("Unexpected annotation: (%s)", annot)
+		p.errorf("Unexpected annotation (%s).", annot)
 	}
 
 	return
@@ -107,6 +110,8 @@ func (p *Parser) errorf(format string, args ...interface{}) {
 	p.errors = append(p.errors, fmt.Sprintf(format, args...))
 }
 
+// Deserialize raw JSON into a Michelson JSON struct.
+// It can be single object or a slice.
 func unmarshal(raw json.RawMessage) (interface{}, error) {
 	var seq []json.RawMessage
 	if err := json.Unmarshal(raw, &seq); err == nil {

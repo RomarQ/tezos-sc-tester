@@ -8,6 +8,7 @@ import (
 	"github.com/romarq/visualtez-testing/internal/business"
 	"github.com/romarq/visualtez-testing/internal/business/michelson"
 	"github.com/romarq/visualtez-testing/internal/logger"
+	"github.com/romarq/visualtez-testing/internal/utils"
 )
 
 type OriginateContractAction struct {
@@ -66,7 +67,7 @@ func (action OriginateContractAction) validate() error {
 	missingFields := make([]string, 0)
 	if action.Name == "" {
 		missingFields = append(missingFields, "name")
-	} else if err := business.ValidateString(STRING_IDENTIFIER_REGEX, action.Name); err != nil {
+	} else if err := utils.ValidateString(STRING_IDENTIFIER_REGEX, action.Name); err != nil {
 		return err
 	}
 	if action.Code == nil {

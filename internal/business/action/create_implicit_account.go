@@ -7,6 +7,7 @@ import (
 
 	"github.com/romarq/visualtez-testing/internal/business"
 	"github.com/romarq/visualtez-testing/internal/logger"
+	"github.com/romarq/visualtez-testing/internal/utils"
 )
 
 type CreateImplicitAccountAction struct {
@@ -34,7 +35,7 @@ func (action CreateImplicitAccountAction) Run(mockup business.Mockup) ActionResu
 		return action.buildFailureResult(fmt.Sprintf("Name (%s) is already in use.", action.Name))
 	}
 
-	keyPair, err := business.GenerateKey()
+	keyPair, err := utils.GenerateKey()
 	if err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
 		return action.buildFailureResult("Could not generate wallet.")
@@ -87,7 +88,7 @@ func (action CreateImplicitAccountAction) validate() error {
 	missingFields := make([]string, 0)
 	if action.Name == "" {
 		missingFields = append(missingFields, "name")
-	} else if err := business.ValidateString(STRING_IDENTIFIER_REGEX, action.Name); err != nil {
+	} else if err := utils.ValidateString(STRING_IDENTIFIER_REGEX, action.Name); err != nil {
 		return err
 	}
 

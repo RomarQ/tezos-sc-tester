@@ -45,7 +45,7 @@ func GetConfig() Config {
 	// Load environment variables only once
 	once.Do(func() {
 		var configPath string
-		flag.StringVar(&configPath, "config", "./config/api.yaml", "API config file location")
+		flag.StringVar(&configPath, "config", "./config.yaml", "API config file location")
 		flag.Parse()
 		singleton = load(configPath)
 	})

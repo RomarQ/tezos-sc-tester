@@ -19,6 +19,8 @@ import (
 	_ "github.com/romarq/visualtez-testing/docs"
 )
 
+var VERSION = "" // Updated with "-ldflags" during build
+
 // InitializeAPI - Initialize REST API
 // @title Visualtez Testing API
 // @version 1.0
@@ -28,7 +30,7 @@ func main() {
 	configuration := Config.GetConfig()
 	LOG.SetupLogger(configuration.Log.Location, configuration.Log.Level)
 
-	LOG.Info("Initializing API...")
+	LOG.Info("Initializing API (v%s)...", VERSION)
 
 	e := echo.New()
 

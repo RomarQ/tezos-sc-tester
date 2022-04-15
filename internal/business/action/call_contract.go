@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/romarq/visualtez-testing/internal/business"
+	"github.com/romarq/visualtez-testing/internal/utils"
 )
 
 type CallContractAction struct {
@@ -47,17 +48,17 @@ func (action CallContractAction) validate() error {
 	missingFields := make([]string, 0)
 	if action.Recipient == "" {
 		missingFields = append(missingFields, "recipient")
-	} else if err := business.ValidateString(STRING_IDENTIFIER_REGEX, action.Recipient); err != nil {
+	} else if err := utils.ValidateString(STRING_IDENTIFIER_REGEX, action.Recipient); err != nil {
 		return err
 	}
 	if action.Sender == "" {
 		missingFields = append(missingFields, "sender")
-	} else if err := business.ValidateString(STRING_IDENTIFIER_REGEX, action.Sender); err != nil {
+	} else if err := utils.ValidateString(STRING_IDENTIFIER_REGEX, action.Sender); err != nil {
 		return err
 	}
 	if action.Entrypoint == "" {
 		missingFields = append(missingFields, "entrypoint")
-	} else if err := business.ValidateString(ENTRYPOINT_REGEX, action.Entrypoint); err != nil {
+	} else if err := utils.ValidateString(ENTRYPOINT_REGEX, action.Entrypoint); err != nil {
 		return err
 	}
 	if action.Parameter == "" {

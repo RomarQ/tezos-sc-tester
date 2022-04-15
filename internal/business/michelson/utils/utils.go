@@ -3,12 +3,12 @@ package utils
 import (
 	"regexp"
 
-	"github.com/romarq/visualtez-testing/pkg/utils"
+	"github.com/romarq/visualtez-testing/internal/utils"
 )
 
 var (
 	regex_instruction = regexp.MustCompile("^[0-9A-Z_]+$")
-	RESERVED_WORDS    = []string{
+	reserved_words    = []string{
 		"storage",
 		"parameter",
 		"code",
@@ -20,5 +20,5 @@ func IsInstruction(text string) bool {
 	return regex_instruction.MatchString(text)
 }
 func IsReservedWord(word string) bool {
-	return utils.Contains(RESERVED_WORDS, word)
+	return utils.Contains(reserved_words, word)
 }

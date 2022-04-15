@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	TestUtils "github.com/romarq/visualtez-testing/pkg/utils"
+	"github.com/romarq/visualtez-testing/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -49,14 +49,14 @@ func TestUnmarshal_OriginateContractAction(t *testing.T) {
 			)
 			assert.Equal(
 				t,
-				TestUtils.PrettifyJSON(code),
-				TestUtils.PrettifyJSON(action.Code),
+				utils.PrettifyJSON(code),
+				utils.PrettifyJSON(action.Code),
 				"Assert code",
 			)
 			assert.Equal(
 				t,
-				TestUtils.PrettifyJSON(storage),
-				TestUtils.PrettifyJSON(action.Storage),
+				utils.PrettifyJSON(storage),
+				utils.PrettifyJSON(action.Storage),
 				"Assert storage",
 			)
 		})

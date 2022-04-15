@@ -11,7 +11,7 @@ import (
 	"github.com/romarq/visualtez-testing/internal/business/action"
 	"github.com/romarq/visualtez-testing/internal/config"
 	"github.com/romarq/visualtez-testing/internal/logger"
-	TestUtils "github.com/romarq/visualtez-testing/pkg/utils"
+	"github.com/romarq/visualtez-testing/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -136,7 +136,7 @@ func TestRunTest(t *testing.T) {
 			actionResult := result[0]
 			assert.Equal(t, actionResult.Status, action.Success, "Action result must be (success)")
 			assert.Equal(t, actionResult.Kind, action.OriginateContract, "Validate action kind")
-			assert.Equal(t, TestUtils.PrettifyJSON(actionResult.Action), TestUtils.PrettifyJSON(OriginateContractAction["payload"]), "Validate action payload")
+			assert.Equal(t, utils.PrettifyJSON(actionResult.Action), utils.PrettifyJSON(OriginateContractAction["payload"]), "Validate action payload")
 			assert.Equal(t, fmt.Sprintf("%v", actionResult.Result["address"])[0:3], "KT1", "Validate result payload")
 		})
 }

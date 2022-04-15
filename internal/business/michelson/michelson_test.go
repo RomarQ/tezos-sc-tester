@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/romarq/visualtez-testing/pkg/utils"
+	"github.com/romarq/visualtez-testing/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
 
