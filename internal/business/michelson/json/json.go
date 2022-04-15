@@ -11,12 +11,12 @@ import (
 
 type (
 	MichelsonJSON struct {
-		Prim   string            `json:"prim,omitempty"`
-		Int    string            `json:"int,omitempty"`
-		String string            `json:"string,omitempty"`
-		Bytes  string            `json:"bytes,omitempty"`
-		Args   []json.RawMessage `json:"args,omitempty"`
-		Annots []string          `json:"annots,omitempty"`
+		Prim   string        `json:"prim,omitempty"`
+		Int    string        `json:"int,omitempty"`
+		String string        `json:"string,omitempty"`
+		Bytes  string        `json:"bytes,omitempty"`
+		Args   []interface{} `json:"args,omitempty"`
+		Annots []string      `json:"annots,omitempty"`
 	}
 )
 
@@ -78,18 +78,22 @@ func toMichelineAnnots(annots []string) string {
 	return strings.Join(annots, " ")
 }
 
-func toMichelinePrim(json MichelsonJSON) (string, error) {
-	if !json.isPrim() {
-		return "", fmt.Errorf("Invalid (prim): %v", utils.PrettifyJSON(json))
+func toMichelinePrim(michelson MichelsonJSON) (string, error) {
+	if !michelson.isPrim() {
+		return "", fmt.Errorf("Invalid (prim): %v", utils.PrettifyJSON(michelson))
 	}
 
-	tokens := []string{json.Prim}
-	if len(json.Annots) > 0 {
-		tokens = append(tokens, toMichelineAnnots(json.Annots))
+	tokens := []string{michelson.Prim}
+	if len(michelson.Annots) > 0 {
+		tokens = append(tokens, toMichelineAnnots(michelson.Annots))
 	}
 
-	for _, raw := range json.Args {
-		token, err := toMicheline(raw)
+	for _, raw := range michelson.Args {
+		j, err := json.Marshal(raw)
+		if err != nil {
+			return "", err
+		}
+		token, err := toMicheline(j)
 		if err != nil {
 			return "", err
 		}
@@ -97,7 +101,7 @@ func toMichelinePrim(json MichelsonJSON) (string, error) {
 	}
 
 	format := "%s"
-	if json.supportsParenthesis() && len(tokens) > 1 {
+	if michelson.supportsParenthesis() && len(tokens) > 1 {
 		format = "(%s)"
 	}
 
@@ -146,8 +150,4 @@ func unmarshal(raw json.RawMessage) (interface{}, error) {
 	var prim MichelsonJSON
 	err := json.Unmarshal(raw, &prim)
 	return prim, err
-}
-
-func (j MichelsonJSON) Marshal(prefix string, indent string) (json.RawMessage, error) {
-	return json.MarshalIndent(j, prefix, indent)
 }

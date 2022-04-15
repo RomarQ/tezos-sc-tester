@@ -8,55 +8,37 @@ import (
 )
 
 func Print(n ast.Node, prefix string, indent string) (json.RawMessage, error) {
+	return json.MarshalIndent(translateAST(n), prefix, indent)
+}
+
+func translateAST(n ast.Node) interface{} {
+	var obj interface{}
+
 	switch node := n.(type) {
 	case ast.Bytes:
-		return MichelsonJSON{
-			Bytes: node.Value[2:],
-		}.Marshal(prefix, indent)
+		obj = MichelsonJSON{Bytes: node.Value[2:]}
 	case ast.Int:
-		return MichelsonJSON{
-			Int: fmt.Sprint(node.Value),
-		}.Marshal(prefix, indent)
+		obj = MichelsonJSON{Int: fmt.Sprint(node.Value)}
 	case ast.String:
-		return MichelsonJSON{
-			String: node.Value,
-		}.Marshal(prefix, indent)
+		obj = MichelsonJSON{String: node.Value}
 	case ast.Prim:
-		return printPrim(node, prefix, indent)
+		prim := MichelsonJSON{
+			Prim: node.Prim,
+		}
+		for _, el := range node.Annotations {
+			prim.Annots = append(prim.Annots, el.Value)
+		}
+		for _, el := range node.Arguments {
+			prim.Args = append(prim.Args, translateAST(el))
+		}
+		obj = prim
 	case ast.Sequence:
-		return printSequence(node, prefix, indent)
-	}
-	fmt.Print(n)
-	return nil, fmt.Errorf("Unexpected AST Node (%s).", n.String())
-}
-
-func printPrim(n ast.Prim, prefix string, indent string) (json.RawMessage, error) {
-	prim := MichelsonJSON{
-		Prim: n.Prim,
-	}
-	for _, el := range n.Annotations {
-		prim.Annots = append(prim.Annots, el.Value)
-	}
-	for _, el := range n.Arguments {
-		b, err := Print(el, prefix, indent)
-		if err != nil {
-			return nil, err
+		sequence := make([]interface{}, 0)
+		for _, el := range node.Elements {
+			sequence = append(sequence, translateAST(el))
 		}
-		prim.Args = append(prim.Args, b)
+		obj = sequence
 	}
 
-	return prim.Marshal(prefix, indent)
-}
-
-func printSequence(n ast.Sequence, prefix string, indent string) (json.RawMessage, error) {
-	sequence := make([]json.RawMessage, 0)
-	for _, el := range n.Elements {
-		b, err := Print(el, prefix, indent)
-		if err != nil {
-			return nil, err
-		}
-		sequence = append(sequence, b)
-	}
-
-	return json.MarshalIndent(sequence, prefix, indent)
+	return obj
 }
