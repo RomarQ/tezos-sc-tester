@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/romarq/visualtez-testing/internal/business/michelson/ast"
 	"github.com/romarq/visualtez-testing/internal/business/michelson/micheline/token"
@@ -17,7 +18,8 @@ type Parser struct {
 	token_position int
 	token_kind     token.Kind
 	token_text     string
-	scanner        Scanner
+
+	scanner Scanner
 
 	trace bool
 }
@@ -27,8 +29,9 @@ var (
 	regex_number = regexp.MustCompile("^-?[0-9]+$")
 )
 
-func (p *Parser) Init(scanner Scanner) {
-	p.scanner = scanner
+func InitParser(micheline string) (parser Parser) {
+	parser.scanner = InitScanner(micheline)
+	return
 }
 
 func (p *Parser) Parse() ast.Node {
@@ -41,6 +44,8 @@ func (p *Parser) Parse() ast.Node {
 		return p.parseString()
 	case kind == token.Int:
 		return p.parseInt()
+	case kind == token.Open_paren:
+		return p.parseParenthesis()
 	case kind == token.Identifier:
 		return p.parsePrim()
 	case kind == token.Open_brace:
@@ -50,6 +55,18 @@ func (p *Parser) Parse() ast.Node {
 	}
 
 	return nil
+}
+
+func (p *Parser) HasErrors() bool {
+	return len(p.scanner.errors) > 0
+}
+
+func (p *Parser) Error() error {
+	errors := make([]string, len(p.scanner.errors))
+	for _, err := range p.scanner.errors {
+		errors = append(errors, err.Message)
+	}
+	return fmt.Errorf(strings.Join(errors, ";\n"))
 }
 
 func (p *Parser) next() {
@@ -177,11 +194,7 @@ func (p *Parser) parsePrim() ast.Prim {
 	p.next() // Consume next token
 
 	// Check annotations (Annotations can only appear right after an identifier)
-	annotations := make([]ast.Annotation, 0)
-	for p.token_kind == token.Annot {
-		annotations = append(annotations, p.parseAnnotation())
-		p.next() // Consume next token
-	}
+	annotations := p.parseAnnotations()
 
 	arguments := make([]ast.Node, 0)
 
@@ -200,7 +213,18 @@ func (p *Parser) parsePrim() ast.Prim {
 			arguments = append(arguments, p.parseParenthesis())
 			continue
 		case token.Identifier:
-			arguments = append(arguments, p.parsePrim())
+			for p.token_kind == token.Identifier {
+				identBegin := p.token_position
+				arguments = append(arguments, ast.Prim{
+					Position: ast.Position{
+						Pos: identBegin,
+						End: identBegin + len(p.token_text) - 1,
+					},
+					Prim:        p.token_text,
+					Annotations: p.parseAnnotations(),
+				})
+				p.next() // Consume next token
+			}
 			continue
 		case token.Open_brace:
 			arguments = append(arguments, p.parseSequence())
@@ -230,11 +254,21 @@ func (p *Parser) parseParenthesis() ast.Prim {
 
 	node := p.parsePrim()
 	end := p.expect(token.Close_paren)
+	p.next() // Consume next token
 
 	node.Position.Pos = begin
 	node.Position.End = end
 
 	return node
+}
+
+// parseAnnotations parses annotations (Annotations can only appear right after an identifier)
+func (p *Parser) parseAnnotations() (annotations []ast.Annotation) {
+	for p.token_kind == token.Annot {
+		annotations = append(annotations, p.parseAnnotation())
+		p.next() // Consume next token
+	}
+	return
 }
 
 func (p *Parser) parseAnnotation() ast.Annotation {

@@ -28,12 +28,13 @@ const (
 	NUL = 0
 )
 
-func (s *Scanner) Init(micheline string) {
-	s.source = micheline
-	s.offset = 0
-	s.rdOffset = 0
-	s.lineOffset = 0
-	s.columnOffset = 0
+func InitScanner(micheline string) (scanner Scanner) {
+	scanner.source = micheline
+	scanner.offset = 0
+	scanner.rdOffset = 0
+	scanner.lineOffset = 0
+	scanner.columnOffset = 0
+	return
 }
 
 func (s *Scanner) Scan() (pos int, tk token.Kind, text string) {
@@ -59,7 +60,7 @@ func (s *Scanner) Scan() (pos int, tk token.Kind, text string) {
 	case '#':
 		tk = token.Comment
 		for s.peek() != '\n' {
-			if s.IsAtEnd() {
+			if s.isAtEnd() {
 				s.errorf(`Reached EOF while parsing comment. %s`, s.lineInfo())
 				break
 			}
@@ -69,7 +70,7 @@ func (s *Scanner) Scan() (pos int, tk token.Kind, text string) {
 	case '%', ':', '@':
 		tk = token.Annot
 		for isIdentifier(s.peek()) {
-			if s.IsAtEnd() {
+			if s.isAtEnd() {
 				s.errorf(`Reached EOF while parsing annotation. %s`, s.lineInfo())
 				break
 			}
@@ -80,7 +81,7 @@ func (s *Scanner) Scan() (pos int, tk token.Kind, text string) {
 		tk = token.String
 		text = ""
 		for s.peek() != '"' {
-			if s.IsAtEnd() {
+			if s.isAtEnd() {
 				s.errorf(`Reached EOF while parsing a string. %s`, s.lineInfo())
 				break
 			}
@@ -90,7 +91,7 @@ func (s *Scanner) Scan() (pos int, tk token.Kind, text string) {
 		s.next() // Consume closing quote
 	case '0': // Can be an integer or bytes
 		for isIdentifier(s.peek()) {
-			if s.IsAtEnd() {
+			if s.isAtEnd() {
 				s.errorf(`Reached EOF while parsing hexadecimal. %s`, s.lineInfo())
 				break
 			}
@@ -105,7 +106,7 @@ func (s *Scanner) Scan() (pos int, tk token.Kind, text string) {
 		}
 	default:
 		for isIdentifier(s.peek()) {
-			if s.IsAtEnd() {
+			if s.isAtEnd() {
 				s.errorf(`Reached EOF while parsing value. %s`, s.lineInfo())
 				break
 			}
@@ -154,13 +155,13 @@ func (s *Scanner) next() {
 // peek returns the next byte in the scanner sequence without
 // incrementing the current position. Returns (0 => NUL) if the scanning is over.
 func (s Scanner) peek() rune {
-	if s.IsAtEnd() {
+	if s.isAtEnd() {
 		return NUL
 	}
 	return rune(s.source[s.rdOffset])
 }
 
-func (s Scanner) IsAtEnd() bool {
+func (s Scanner) isAtEnd() bool {
 	// len(s.source) is cached and there is no overhead
 	return s.rdOffset == len(s.source)
 }

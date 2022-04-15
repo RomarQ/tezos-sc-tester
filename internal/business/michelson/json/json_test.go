@@ -1,4 +1,4 @@
-package michelson
+package json
 
 import (
 	"encoding/json"

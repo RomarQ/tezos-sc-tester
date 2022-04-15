@@ -23,8 +23,7 @@ func TestTokenize(t *testing.T) {
 
 	runTests := func(t *testing.T, list []test) {
 		for _, test := range list {
-			scanner := Scanner{}
-			scanner.Init(test.Input)
+			scanner := InitScanner(test.Input)
 
 			for _, output := range test.Output {
 				position, kind, text := scanner.Scan()

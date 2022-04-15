@@ -15,14 +15,10 @@ func TestParseValues(t *testing.T) {
 
 	runTests := func(t *testing.T, list []test) {
 		for _, test := range list {
-			scanner := Scanner{}
-			scanner.Init(test.Input)
-
-			parser := Parser{}
-			parser.Init(scanner)
+			parser := InitParser(test.Input)
 
 			node := parser.Parse()
-			assert.Empty(t, scanner.errors, "No errors expected")
+			assert.Empty(t, parser.scanner.errors, "No errors expected")
 			assert.Equal(t, node.String(), test.Output, "Verify AST")
 		}
 	}
@@ -82,14 +78,10 @@ func TestParseContracts(t *testing.T) {
 
 	runTests := func(t *testing.T, list []test) {
 		for _, test := range list {
-			scanner := Scanner{}
-			scanner.Init(test.Input)
-
-			parser := Parser{}
-			parser.Init(scanner)
+			parser := InitParser(test.Input)
 
 			node := parser.Parse()
-			assert.Empty(t, scanner.errors, "No errors expected")
+			assert.Empty(t, parser.scanner.errors, "No errors expected")
 			assert.Equal(t, node.String(), test.Output, "Verify AST")
 		}
 	}
@@ -110,7 +102,7 @@ func TestParseContracts(t *testing.T) {
 					view "view1" unit unit {}
 				}
 				`,
-				Output: "Sequence([Prim(storage, [], [Prim(unit, [], [])]), Prim(parameter, [], [Prim(unit, [], [])]), Prim(code, [], [Sequence([Prim(DROP, [], []), Prim(UNIT, [], []), Prim(NIL, [], [Prim(operation, [], [])]), Prim(PAIR, [], [])])]), Prim(view, [], [String(view1), Prim(unit, [], [Prim(unit, [], [Sequence([])])])])])",
+				Output: "Sequence([Prim(storage, [], [Prim(unit, [], [])]), Prim(parameter, [], [Prim(unit, [], [])]), Prim(code, [], [Sequence([Prim(DROP, [], []), Prim(UNIT, [], []), Prim(NIL, [], [Prim(operation, [], [])]), Prim(PAIR, [], [])])]), Prim(view, [], [String(view1), Prim(unit, [], []), Prim(unit, [], []), Sequence([])])])",
 			},
 			{
 				Input: `
@@ -129,7 +121,7 @@ func TestParseContracts(t *testing.T) {
 					}
 				}
 				`,
-				Output: "Sequence([Prim(storage, [], [Prim(unit, [%abc], [])]), Prim(parameter, [], [Prim(unit, [%ep], [])]), Prim(code, [], [Sequence([Prim(DROP, [], []), Prim(UNIT, [], []), Prim(NIL, [], [Prim(operation, [], [])]), Prim(PAIR, [], [])])]), Prim(view, [], [String(view1), Prim(unit, [], [Prim(pair, [], [Prim(int, [], [Prim(int, [], [])])])])]), Sequence([Prim(DROP, [], []), Prim(PUSH, [], [Prim(pair, [], [Prim(int, [], [Prim(int, [], [])])])]), Prim(Pair, [], [Int(1), Int(1)])])])",
+				Output: "Sequence([Prim(storage, [], [Prim(unit, [%abc], [])]), Prim(parameter, [], [Prim(unit, [%ep], [])]), Prim(code, [], [Sequence([Prim(DROP, [], []), Prim(UNIT, [], []), Prim(NIL, [], [Prim(operation, [], [])]), Prim(PAIR, [], [])])]), Prim(view, [], [String(view1), Prim(unit, [], []), Prim(pair, [], [Prim(int, [], []), Prim(int, [], [])]), Sequence([Prim(DROP, [], []), Prim(PUSH, [], [Prim(pair, [], [Prim(int, [], []), Prim(int, [], [])]), Prim(Pair, [], [Int(1), Int(1)])])])])])",
 			},
 		})
 	})

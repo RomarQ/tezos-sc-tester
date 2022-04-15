@@ -1,19 +1,20 @@
-package michelson
+package json
 
 import (
 	"encoding/json"
 	"fmt"
 	"strings"
 
+	MichelsonUtils "github.com/romarq/visualtez-testing/internal/business/michelson/utils"
 	"github.com/romarq/visualtez-testing/pkg/utils"
 )
 
 type (
 	MichelsonJSON struct {
-		Prim   *string           `json:"prim,omitempty"`
-		Int    *string           `json:"int,omitempty"`
-		String *string           `json:"string,omitempty"`
-		Bytes  *string           `json:"bytes,omitempty"`
+		Prim   string            `json:"prim,omitempty"`
+		Int    string            `json:"int,omitempty"`
+		String string            `json:"string,omitempty"`
+		Bytes  string            `json:"bytes,omitempty"`
 		Args   []json.RawMessage `json:"args,omitempty"`
 		Annots []string          `json:"annots,omitempty"`
 	}
@@ -25,16 +26,16 @@ func MichelineOfJSON(raw json.RawMessage) (string, error) {
 }
 
 func (json MichelsonJSON) isInt() bool {
-	return json.Int != nil
+	return json.Int != ""
 }
 func (json MichelsonJSON) isString() bool {
-	return json.String != nil
+	return json.String != ""
 }
 func (json MichelsonJSON) isBytes() bool {
-	return json.Bytes != nil
+	return json.Bytes != ""
 }
 func (json MichelsonJSON) isPrim() bool {
-	return json.Prim != nil
+	return json.Prim != ""
 }
 func (json MichelsonJSON) hasArg() bool {
 	return len(json.Args) > 0
@@ -44,22 +45,22 @@ func (json MichelsonJSON) hasAnnots() bool {
 }
 
 func toMichelineInt(json MichelsonJSON) (string, error) {
-	if json.Int == nil {
+	if !json.isInt() {
 		return "", fmt.Errorf("Expected (Int), but received: %v", utils.PrettifyJSON(json))
 	}
-	return *json.Int, nil
+	return json.Int, nil
 }
 func toMichelineString(json MichelsonJSON) (string, error) {
-	if json.String == nil {
+	if !json.isString() {
 		return "", fmt.Errorf("Expected (String), but received: %v", utils.PrettifyJSON(json))
 	}
-	return fmt.Sprintf(`"%s"`, *json.String), nil
+	return fmt.Sprintf(`"%s"`, json.String), nil
 }
 func toMichelineBytes(json MichelsonJSON) (string, error) {
-	if json.Bytes == nil {
+	if !json.isBytes() {
 		return "", fmt.Errorf("Expected (Bytes), but received: %v", utils.PrettifyJSON(json))
 	}
-	return *json.Bytes, nil
+	return json.Bytes, nil
 }
 func toMichelineSeq(seq []json.RawMessage) (string, error) {
 	elements := make([]string, 0)
@@ -78,11 +79,11 @@ func toMichelineAnnots(annots []string) string {
 }
 
 func toMichelinePrim(json MichelsonJSON) (string, error) {
-	if json.Prim == nil {
+	if !json.isPrim() {
 		return "", fmt.Errorf("Invalid (prim): %v", utils.PrettifyJSON(json))
 	}
 
-	tokens := []string{*json.Prim}
+	tokens := []string{json.Prim}
 	if len(json.Annots) > 0 {
 		tokens = append(tokens, toMichelineAnnots(json.Annots))
 	}
@@ -132,9 +133,9 @@ func toMicheline(raw json.RawMessage) (string, error) {
 func (json MichelsonJSON) supportsParenthesis() bool {
 	return json.isPrim() &&
 		// Cannot be a contract root
-		!utils.Contains(reserved_words, *json.Prim) &&
+		!MichelsonUtils.IsReservedWord(json.Prim) &&
 		// Match type token regex
-		!isInstruction(*json.Prim)
+		!MichelsonUtils.IsInstruction(json.Prim)
 }
 
 func unmarshal(raw json.RawMessage) (interface{}, error) {
@@ -145,4 +146,8 @@ func unmarshal(raw json.RawMessage) (interface{}, error) {
 	var prim MichelsonJSON
 	err := json.Unmarshal(raw, &prim)
 	return prim, err
+}
+
+func (j MichelsonJSON) Marshal(prefix string, indent string) (json.RawMessage, error) {
+	return json.MarshalIndent(j, prefix, indent)
 }
