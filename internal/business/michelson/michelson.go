@@ -24,5 +24,5 @@ func MichelineOfJSON(michelsonJSON json.RawMessage) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return micheline.Print(ast), nil
+	return micheline.Print(ast, ""), nil
 }

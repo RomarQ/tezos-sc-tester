@@ -20,7 +20,7 @@ func TestRunTest(t *testing.T) {
 
 	api := InitTestingAPI(config.Config{
 		Log: config.LogConfig{
-			Location: "../../tmp_test/api.log",
+			Location: "../../.tmp_test/api.log",
 		},
 		Tezos: config.TezosConfig{
 			DefaultProtocol: "ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK",

@@ -1,0 +1,10 @@
+{
+    storage (unit);
+    parameter (unit %do_something);
+    code {
+        DROP;
+        UNIT;
+        NIL (operation);
+        PAIR
+    }
+}

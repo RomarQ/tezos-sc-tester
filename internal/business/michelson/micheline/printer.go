@@ -8,7 +8,22 @@ import (
 	"github.com/romarq/visualtez-testing/internal/business/michelson/utils"
 )
 
-func Print(n ast.Node) (micheline string) {
+type (
+	context struct {
+		indent string
+		depth  int
+	}
+)
+
+func Print(n ast.Node, indent string) string {
+	p := context{
+		indent: indent,
+		depth:  0,
+	}
+	return p.print(n)
+}
+
+func (p *context) print(n ast.Node) (micheline string) {
 	switch node := n.(type) {
 	case ast.Bytes:
 		micheline = fmt.Sprintf("0x%s", node.Value)
@@ -17,20 +32,20 @@ func Print(n ast.Node) (micheline string) {
 	case ast.String:
 		micheline = fmt.Sprintf(`"%s"`, node.Value)
 	case ast.Prim:
-		micheline = printPrim(node)
+		micheline = p.printPrim(node)
 	case ast.Sequence:
-		micheline = printSequence(node)
+		micheline = p.printSequence(node)
 	}
 	return
 }
 
-func printPrim(n ast.Prim) string {
+func (p *context) printPrim(n ast.Prim) string {
 	args := []string{n.Prim}
 	for _, el := range n.Annotations {
 		args = append(args, el.Value)
 	}
 	for _, el := range n.Arguments {
-		args = append(args, Print(el))
+		args = append(args, p.print(el))
 	}
 
 	if utils.IsInstruction(n.Prim) || utils.IsReservedWord(n.Prim) {
@@ -40,11 +55,29 @@ func printPrim(n ast.Prim) string {
 	return fmt.Sprintf("(%s)", strings.Join(args, " "))
 }
 
-func printSequence(n ast.Sequence) string {
+func (p *context) printSequence(n ast.Sequence) string {
+	prevIndent := p.getIndent()
+
+	// Increase depth used for indentation
+	p.depth += 1
+	defer func() {
+		// Decrease depth on function exit
+		p.depth -= 1
+	}()
+
 	elements := make([]string, 0)
 	for _, el := range n.Elements {
-		elements = append(elements, Print(el))
+		elements = append(elements, p.print(el))
 	}
 
-	return fmt.Sprintf("{ %s }", strings.Join(elements, " ; "))
+	return fmt.Sprintf("{%s%s%s}", p.getIndent(), strings.Join(elements, fmt.Sprintf(";%s", p.getIndent())), prevIndent)
+}
+
+func (p *context) getIndent() string {
+	if p.indent != "" {
+		return fmt.Sprintf("\n%s", strings.Repeat(p.indent, p.depth))
+	} else {
+		return " "
+	}
+
 }
