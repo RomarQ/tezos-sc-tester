@@ -15,7 +15,7 @@ func TestUnmarshal_CreateImplicitAccountAction(t *testing.T) {
 				json.RawMessage(`
 					{
 						"name":    "bob",
-						"balance": 10
+						"balance": "10"
 					}
 				`),
 			)
@@ -28,7 +28,7 @@ func TestUnmarshal_CreateImplicitAccountAction(t *testing.T) {
 			)
 			assert.Equal(
 				t,
-				float64(10),
+				"10",
 				action.Balance,
 				"Assert balance",
 			)
@@ -41,7 +41,7 @@ func TestUnmarshal_CreateImplicitAccountAction(t *testing.T) {
 				json.RawMessage(`
 					{
 						"name":    "bob A",
-						"balance": 10
+						"balance": "10"
 					}
 				`),
 			)

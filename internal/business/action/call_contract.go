@@ -6,15 +6,16 @@ import (
 	"strings"
 
 	"github.com/romarq/visualtez-testing/internal/business"
+	"github.com/romarq/visualtez-testing/internal/logger"
 	"github.com/romarq/visualtez-testing/internal/utils"
 )
 
 type CallContractAction struct {
-	Recipient  string  `json:"recipient"`
-	Sender     string  `json:"sender"`
-	Entrypoint string  `json:"entrypoint"`
-	Amount     float64 `json:"amount"`
-	Parameter  string  `json:"parameter"`
+	Recipient  string `json:"recipient"`
+	Sender     string `json:"sender"`
+	Entrypoint string `json:"entrypoint"`
+	Amount     string `json:"amount"`
+	Parameter  string `json:"parameter"`
 }
 
 // Unmarshal action
@@ -29,14 +30,20 @@ func (action *CallContractAction) Unmarshal(bytes json.RawMessage) error {
 
 // Perform the action
 func (action CallContractAction) Run(mockup business.Mockup) ActionResult {
+	amount, ok := new(business.TMutez).SetString(action.Amount)
+	if !ok {
+		errMsg := fmt.Sprintf("invalid mutez value (%s).", action.Amount)
+		logger.Debug("[Task #%s] - %s", mockup.TaskID, errMsg)
+		return action.buildFailureResult(errMsg)
+	}
+
 	err := mockup.Transfer(business.CallContractArgument{
 		Recipient:  action.Recipient,
 		Source:     action.Sender,
 		Entrypoint: action.Entrypoint,
-		Amount:     action.Amount,
+		Amount:     amount,
 		Parameter:  action.Parameter,
 	})
-
 	if err != nil {
 		return action.buildFailureResult(err.Error())
 	}

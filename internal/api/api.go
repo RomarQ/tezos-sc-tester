@@ -26,10 +26,10 @@ func InitTestingAPI(config Config.Config) TestingAPI {
 }
 
 // RunTest - Run a test (`/testing`)
-// @ID get-run-a-test
-// @Description Run a test
-// @Produce json
+// @ID post-testing
+// @Description Run test actions
 // @Consumes json
+// @Produce json
 // @Success 200
 // @Failure default {object} Error
 // @Router /testing [post]
@@ -51,8 +51,14 @@ func (api *TestingAPI) RunTest(ctx echo.Context) error {
 
 	taskID := fmt.Sprintf("task_%d", prime)
 	mockup := Mockup.InitMockup(taskID, api.Config)
-	// Teardown on exit
-	defer mockup.Teardown()
+	defer func() {
+		err := recover()
+		if err != nil {
+			Logger.Debug("Panic detected: %v", err)
+		}
+		// Teardown on exit
+		mockup.Teardown()
+	}()
 
 	// Bootstrap mockup
 	err = mockup.Bootstrap()

@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-	"strconv"
 
 	"github.com/romarq/visualtez-testing/internal/config"
 	"github.com/romarq/visualtez-testing/internal/logger"
@@ -26,7 +25,7 @@ type (
 		Source     string
 		Entrypoint string
 		Parameter  string
-		Amount     float64
+		Amount     *TMutez
 	}
 	Mockup struct {
 		TaskID    string
@@ -183,7 +182,7 @@ func (m Mockup) Transfer(arg CallContractArgument) error {
 		},
 		TezosClientArgument{
 			Kind:       COMMAND,
-			Parameters: []string{"transfer", fmt.Sprint(arg.Amount), "from", arg.Source, "to", arg.Recipient},
+			Parameters: []string{"transfer", TezOfMutez(arg.Amount).Text('f', 6), "from", arg.Source, "to", arg.Recipient},
 		},
 	)
 	if arg.Entrypoint != "" {
@@ -223,7 +222,7 @@ func (m Mockup) Transfer(arg CallContractArgument) error {
 }
 
 // Reveal wallet
-func (m Mockup) RevealWallet(walletName string, revealFee float64) error {
+func (m Mockup) RevealWallet(walletName string, revealFee *TMutez) error {
 	logger.Debug("[Task #%s] - Revealing wallet (%s).", m.TaskID, walletName)
 
 	arguments := composeArguments(
@@ -245,7 +244,7 @@ func (m Mockup) RevealWallet(walletName string, revealFee float64) error {
 		},
 		TezosClientArgument{
 			Kind:       Fee,
-			Parameters: []string{fmt.Sprint(revealFee)},
+			Parameters: []string{TezOfMutez(revealFee).Text('f', 6)},
 		},
 	)
 
@@ -253,7 +252,7 @@ func (m Mockup) RevealWallet(walletName string, revealFee float64) error {
 	return err
 }
 
-func (m Mockup) GetBalance(name string) (float64, error) {
+func (m Mockup) GetBalance(name string) (*TMutez, error) {
 	logger.Debug("[Task #%s] - Get balance of (%s).", m.TaskID, name)
 
 	arguments := composeArguments(
@@ -278,20 +277,25 @@ func (m Mockup) GetBalance(name string) (float64, error) {
 	// Execute command
 	output, err := m.runTezosClient(m.getTezosClientPath(), arguments)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	// Extract balance in ꜩ
 	pattern := regexp.MustCompile(`(\d*.?\d*)\sꜩ`)
 	match := pattern.FindStringSubmatch(output)
 	if len(match) < 2 {
-		return 0, fmt.Errorf("Could not get the balance for account %s.", name)
+		return nil, fmt.Errorf("Could not get the balance for account %s.", name)
 	}
 
-	return strconv.ParseFloat(match[1], 64)
+	balance, ok := new(TTez).SetString(match[1])
+	if ok {
+		return MutezOfTez(balance), nil
+	}
+
+	return nil, fmt.Errorf("Could not get contract balance.")
 }
 
-func (m *Mockup) Originate(sender string, contractName string, balance float64, code string, storage string) (string, error) {
+func (m *Mockup) Originate(sender string, contractName string, balance *TMutez, code string, storage string) (string, error) {
 	logger.Debug("[Task #%s] - Originating contract (%s).", m.TaskID, contractName)
 
 	arguments := composeArguments(
@@ -311,7 +315,7 @@ func (m *Mockup) Originate(sender string, contractName string, balance float64, 
 			Kind: COMMAND,
 			Parameters: []string{
 				"originate", "contract", contractName,
-				"transferring", fmt.Sprint(balance), "from", sender,
+				"transferring", TezOfMutez(balance).Text('f', 6), "from", sender,
 				"running", code,
 			},
 		},

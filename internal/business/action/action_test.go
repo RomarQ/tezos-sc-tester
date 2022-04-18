@@ -18,7 +18,7 @@ func TestGetActions(t *testing.T) {
 					"kind": "create_implicit_account",
 					"payload": {
 						"name": "alice",
-						"balance": 10
+						"balance": "10"
 					}
 				}
 			]
@@ -30,7 +30,7 @@ func TestGetActions(t *testing.T) {
 				[]IAction{
 					&CreateImplicitAccountAction{
 						Name:    "alice",
-						Balance: float64(10),
+						Balance: "10",
 					},
 				},
 				actions,
@@ -47,7 +47,7 @@ func TestGetActions(t *testing.T) {
 					"kind": "create_implicit_account",
 					"payload": {
 						"name": "alice",
-						"balance": 10
+						"balance": "10"
 					}
 				},
 				{
@@ -73,11 +73,11 @@ func TestApplyActions(t *testing.T) {
 		func(t *testing.T) {
 			action_createImplicitAccount_alice := CreateImplicitAccountAction{
 				Name:    "alice",
-				Balance: float64(10),
+				Balance: "10",
 			}
 			action_createImplicitAccount_bob := CreateImplicitAccountAction{
 				Name:    "bob",
-				Balance: float64(10),
+				Balance: "10",
 			}
 			actions := []IAction{
 				&CreateImplicitAccountActionMock{action_createImplicitAccount_alice},

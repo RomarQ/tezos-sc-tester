@@ -13,7 +13,7 @@ import (
 
 type OriginateContractAction struct {
 	Name    string          `json:"name"`
-	Balance float64         `json:"balance"`
+	Balance string          `json:"balance"`
 	Code    json.RawMessage `json:"code"`
 	Storage json.RawMessage `json:"storage"`
 }
@@ -48,11 +48,17 @@ func (action OriginateContractAction) Run(mockup business.Mockup) ActionResult {
 		msg := fmt.Sprintf("Could not convert storage from %s to %s.", business.JSON, business.Michelson)
 		return action.buildFailureResult(msg)
 	}
+	balance, ok := new(business.TMutez).SetString(action.Balance)
+	if !ok {
+		errMsg := fmt.Sprintf("invalid mutez value (%s).", action.Balance)
+		logger.Debug("[Task #%s] - %s", mockup.TaskID, errMsg)
+		return action.buildFailureResult(errMsg)
+	}
 
-	address, err := mockup.Originate(default_originator, action.Name, action.Balance, codeMicheline, storageMicheline)
+	address, err := mockup.Originate(default_originator, action.Name, balance, codeMicheline, storageMicheline)
 	if err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
-		return action.buildFailureResult("Could not originate contract.")
+		return action.buildFailureResult(fmt.Sprintf("could not originate contract. %s", err))
 	}
 
 	// Save new address

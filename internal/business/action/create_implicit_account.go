@@ -3,6 +3,7 @@ package action
 import (
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"strings"
 
 	"github.com/romarq/visualtez-testing/internal/business"
@@ -11,12 +12,12 @@ import (
 )
 
 type CreateImplicitAccountAction struct {
-	Name    string  `json:"name"`
-	Balance float64 `json:"balance"`
+	Name    string `json:"name"`
+	Balance string `json:"balance"`
 }
 
 const (
-	revealFee = 0.5
+	revealFee = 500000 // in mutez
 )
 
 // Unmarshal action
@@ -50,18 +51,23 @@ func (action CreateImplicitAccountAction) Run(mockup business.Mockup) ActionResu
 
 	// Fund wallet
 	address := keyPair.Address().String()
-	balance := action.Balance + revealFee // Increments revealFee which will be debited when revealing the wallet
+	balance, ok := new(business.TMutez).SetString(action.Balance)
+	if !ok {
+		errMsg := fmt.Sprintf("invalid mutez value (%s).", action.Balance)
+		logger.Debug("[Task #%s] - %s", mockup.TaskID, errMsg)
+		return action.buildFailureResult(errMsg)
+	}
 	if err = mockup.Transfer(business.CallContractArgument{
 		Recipient: address,
 		Source:    "bootstrap1",
-		Amount:    balance,
+		Amount:    new(business.TMutez).Add(balance, big.NewFloat(revealFee)), // Increments revealFee which will be debited when revealing the wallet
 	}); err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
 		return action.buildFailureResult("Could not fund wallet.")
 	}
 
 	// Reveal wallet
-	if err = mockup.RevealWallet(action.Name, revealFee); err != nil {
+	if err = mockup.RevealWallet(action.Name, big.NewFloat(revealFee)); err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
 		return action.buildFailureResult("Could not reveal wallet.")
 	}
@@ -71,8 +77,9 @@ func (action CreateImplicitAccountAction) Run(mockup business.Mockup) ActionResu
 	if err != nil {
 		return action.buildFailureResult("Failed to confirm balance.")
 	}
-	if walletBalance != action.Balance {
-		err := fmt.Sprintf("Account balance mismatch %f <> %f.", action.Balance, walletBalance)
+	// Verify the wallet balance
+	if walletBalance.Cmp(balance) != 0 {
+		err := fmt.Sprintf("Account balance mismatch %s <> %s.", action.Balance, walletBalance.String())
 		return action.buildFailureResult(err)
 	}
 

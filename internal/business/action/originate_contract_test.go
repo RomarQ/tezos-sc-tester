@@ -24,7 +24,7 @@ func TestUnmarshal_OriginateContractAction(t *testing.T) {
 			rawJson, err := json.MarshalIndent(
 				map[string]interface{}{
 					"name":    "contract_1",
-					"balance": 10,
+					"balance": "10",
 					"code":    code,
 					"storage": storage,
 				},
@@ -43,7 +43,7 @@ func TestUnmarshal_OriginateContractAction(t *testing.T) {
 			)
 			assert.Equal(
 				t,
-				float64(10),
+				"10",
 				action.Balance,
 				"Assert balance",
 			)
@@ -65,7 +65,7 @@ func TestUnmarshal_OriginateContractAction(t *testing.T) {
 			rawJson, err := json.MarshalIndent(
 				map[string]interface{}{
 					"name":    "contract 1",
-					"balance": 10,
+					"balance": "10",
 				},
 				"",
 				"",

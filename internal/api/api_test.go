@@ -35,7 +35,7 @@ func TestRunTest(t *testing.T) {
 				"kind": action.CreateImplicitAccount,
 				"payload": map[string]interface{}{
 					"name":    "bob",
-					"balance": float64(10),
+					"balance": "10",
 				},
 			}
 			actions, _ := json.Marshal([]map[string]interface{}{CreateImplicitAccountAction})
@@ -55,7 +55,7 @@ func TestRunTest(t *testing.T) {
 			assert.Len(t, result, 1, "Must only contain a single action result")
 
 			actionResult := result[0]
-			assert.Equal(t, actionResult.Status, action.Success, "Action result must be (success)")
+			assert.Equal(t, actionResult.Status, action.Success, "Action status must be (success)")
 			assert.Equal(t, actionResult.Kind, action.CreateImplicitAccount, "Validate action kind")
 			assert.Equal(t, actionResult.Action, CreateImplicitAccountAction["payload"], "Validate action payload")
 			assert.Equal(t, fmt.Sprintf("%v", actionResult.Result["address"])[0:3], "tz1", "Validate result payload")
@@ -67,7 +67,7 @@ func TestRunTest(t *testing.T) {
 				"kind": action.OriginateContract,
 				"payload": map[string]interface{}{
 					"name":    "contract_1",
-					"balance": float64(10),
+					"balance": "10",
 					"code": json.RawMessage(`
 						[
 							{

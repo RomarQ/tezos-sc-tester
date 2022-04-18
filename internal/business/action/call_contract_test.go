@@ -17,7 +17,7 @@ func TestUnmarshal_CallContractAction(t *testing.T) {
 						"recipient":	"contract_1",
 						"sender":		"sender_name",
 						"entrypoint":	"do_something",
-						"amount":		10,
+						"amount":		"10",
 						"parameter":	"Unit"
 					}
 				`),
@@ -37,7 +37,7 @@ func TestUnmarshal_CallContractAction(t *testing.T) {
 			)
 			assert.Equal(
 				t,
-				float64(10),
+				"10",
 				action.Amount,
 				"Assert amount",
 			)
@@ -56,7 +56,7 @@ func TestUnmarshal_CallContractAction(t *testing.T) {
 					{
 						"recipient":	"contract 1",
 						"sender":		"sender_name",
-						"amount":		10,
+						"amount":		"10",
 						"parameter":	"Unit"
 					}
 				`),
@@ -72,7 +72,7 @@ func TestUnmarshal_CallContractAction(t *testing.T) {
 					{
 						"recipient":	"contract_1",
 						"sender":		"sender name",
-						"amount":		10,
+						"amount":		"10",
 						"parameter":	"Unit"
 					}
 				`),
@@ -89,7 +89,7 @@ func TestUnmarshal_CallContractAction(t *testing.T) {
 						"recipient":	"contract_1",
 						"sender":		"sender_name",
 						"entrypoint":	"abcdefghijlmnopqrstuvxz123456789",
-						"amount":		10,
+						"amount":		"10",
 						"parameter":	"Unit"
 					}
 				`),
@@ -106,7 +106,7 @@ func TestUnmarshal_CallContractAction(t *testing.T) {
 						"recipient":	"contract_1",
 						"sender":		"sender_name",
 						"entrypoint":	"a.a",
-						"amount":		10,
+						"amount":		"10",
 						"parameter":	"Unit"
 					}
 				`),
