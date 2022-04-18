@@ -1,0 +1,20 @@
+{
+	"compilerOptions": {
+		"module": "esnext",
+		"target": "es2015",
+		"lib": ["es5", "es6", "es7", "dom"],
+		"pretty": true,
+		"strict": true,
+		"alwaysStrict": true,
+		"noImplicitReturns": true,
+		"esModuleInterop": true,
+		"declaration": true,
+		"declarationDir": "./types",
+		"moduleResolution": "node",
+		"rootDir": "./src",
+	},
+	"include": [
+		"./src"
+	],
+	"exclude":["./node_modules", "./tests"]
+}
