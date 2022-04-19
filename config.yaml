@@ -2,6 +2,8 @@ port: 5000
 tezos:
   dir: tezos-bin
   default_protocol: ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK
+  reveal_fee: 1000
+  originator: "bootstrap2"
 log:
   location: visualtez-testing.log
   level: debug

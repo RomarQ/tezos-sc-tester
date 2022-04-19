@@ -25,6 +25,8 @@ func TestRunTest(t *testing.T) {
 		Tezos: config.TezosConfig{
 			DefaultProtocol: "ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK",
 			BaseDirectory:   "../../tezos-bin",
+			RevealFee:       1000,
+			Originator:      "bootstrap2",
 		},
 	})
 	logger.SetupLogger(api.Config.Log.Location, api.Config.Log.Level)
@@ -58,7 +60,7 @@ func TestRunTest(t *testing.T) {
 			assert.Equal(t, actionResult.Status, action.Success, "Action status must be (success)")
 			assert.Equal(t, actionResult.Kind, action.CreateImplicitAccount, "Validate action kind")
 			assert.Equal(t, actionResult.Action, CreateImplicitAccountAction["payload"], "Validate action payload")
-			assert.Equal(t, fmt.Sprintf("%v", actionResult.Result["address"])[0:3], "tz1", "Validate result payload")
+			assert.Equal(t, fmt.Sprintf("%v", actionResult.Result["address"])[0:3], "tz1", actionResult.Result)
 		})
 
 	t.Run("Originate Contract",
@@ -137,6 +139,6 @@ func TestRunTest(t *testing.T) {
 			assert.Equal(t, actionResult.Status, action.Success, "Action result must be (success)")
 			assert.Equal(t, actionResult.Kind, action.OriginateContract, "Validate action kind")
 			assert.Equal(t, utils.PrettifyJSON(actionResult.Action), utils.PrettifyJSON(OriginateContractAction["payload"]), "Validate action payload")
-			assert.Equal(t, fmt.Sprintf("%v", actionResult.Result["address"])[0:3], "KT1", "Validate result payload")
+			assert.Equal(t, fmt.Sprintf("%v", actionResult.Result["address"])[0:3], "KT1", actionResult.Result)
 		})
 }

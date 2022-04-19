@@ -26,10 +26,6 @@ type OriginateContractAction struct {
 	Storage ast.Node
 }
 
-const (
-	default_originator = "bootstrap2"
-)
-
 // Unmarshal action
 func (action *OriginateContractAction) Unmarshal(bytes json.RawMessage) error {
 	err := json.Unmarshal(bytes, &action.json)
@@ -76,7 +72,7 @@ func (action OriginateContractAction) Run(mockup business.Mockup) ActionResult {
 
 	codeMicheline := micheline.Print(action.Code, "")
 	storageMicheline := micheline.Print(action.Storage, "")
-	address, err := mockup.Originate(default_originator, action.Name, action.Balance, codeMicheline, storageMicheline)
+	address, err := mockup.Originate(mockup.Config.Tezos.Originator, action.Name, action.Balance, codeMicheline, storageMicheline)
 	if err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
 		return action.buildFailureResult(fmt.Sprintf("could not originate contract. %s", err))

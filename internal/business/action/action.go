@@ -40,7 +40,7 @@ const (
 	ENTRYPOINT_REGEX        = "^[a-zA-Z0-9_]{1,31}$"
 )
 
-// Unmarshal actions
+// GetActions unmarshal test actions
 func GetActions(body io.ReadCloser) ([]IAction, error) {
 	rawActions := make([]json.RawMessage, 0)
 
@@ -75,6 +75,7 @@ func GetActions(body io.ReadCloser) ([]IAction, error) {
 	return actions, err
 }
 
+// ApplyActions executes each test action
 func ApplyActions(mockup business.Mockup, actions []IAction) []ActionResult {
 	responses := make([]ActionResult, 0)
 

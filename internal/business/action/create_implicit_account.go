@@ -20,10 +20,6 @@ type CreateImplicitAccountAction struct {
 	Balance business.Mutez
 }
 
-const (
-	revealFee = 500000 // in mutez
-)
-
 // Unmarshal action
 func (action *CreateImplicitAccountAction) Unmarshal(bytes json.RawMessage) error {
 	err := json.Unmarshal(bytes, &action.json)
@@ -69,10 +65,10 @@ func (action CreateImplicitAccountAction) Run(mockup business.Mockup) ActionResu
 
 	// Fund wallet
 	address := keyPair.Address().String()
-	revealCost := business.MutezOfFloat(big.NewFloat(revealFee))
+	revealCost := business.MutezOfFloat(big.NewFloat(mockup.Config.Tezos.RevealFee))
 	if err = mockup.Transfer(business.CallContractArgument{
 		Recipient: address,
-		Source:    "bootstrap1",
+		Source:    mockup.Config.Tezos.Originator,
 		Amount:    business.AddMutez(action.Balance, revealCost), // Increments revealFee which will be debited when revealing the wallet
 	}); err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)

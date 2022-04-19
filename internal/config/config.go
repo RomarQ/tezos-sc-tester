@@ -25,8 +25,10 @@ type LogConfig struct {
 
 // TezosConfig holds tezos configurations
 type TezosConfig struct {
-	BaseDirectory   string `yaml:"dir,omitempty"`
-	DefaultProtocol string `yaml:"default_protocol,omitempty"`
+	BaseDirectory   string  `yaml:"dir"`
+	DefaultProtocol string  `yaml:"default_protocol"`
+	RevealFee       float64 `yaml:"reveal_fee"`
+	Originator      string  `yaml:"originator"`
 }
 
 // EnvironmentProperty - Known environment properties

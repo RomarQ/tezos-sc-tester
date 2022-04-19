@@ -2,6 +2,8 @@ port: 5000
 tezos:
   dir: /opt/tezos
   default_protocol: ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK
+  reveal_fee: 1000
+  originator: "bootstrap2"
 log:
   location: /var/tezos/api.log
   level: debug

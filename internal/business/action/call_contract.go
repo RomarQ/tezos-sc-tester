@@ -65,7 +65,6 @@ func (action *CallContractAction) Unmarshal(bytes json.RawMessage) error {
 
 // Perform the action
 func (action CallContractAction) Run(mockup business.Mockup) ActionResult {
-
 	err := mockup.Transfer(business.CallContractArgument{
 		Recipient:  action.Recipient,
 		Source:     action.Sender,
