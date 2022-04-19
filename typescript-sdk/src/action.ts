@@ -4,6 +4,11 @@ export enum ActionKind {
     OriginateContract = 'originate_contract',
     CallContract = 'call_contract',
 }
+// Action result status
+export enum ActionResultStatus {
+    Success = 'success',
+    Failure = 'failure',
+}
 
 // create_implicit_account
 
@@ -44,3 +49,10 @@ export interface ICallContractAction {
 }
 
 export type IAction = ICreateImplicitAccountAction | IOriginateContractAction | ICallContractAction;
+
+export interface IActionResult<K extends ActionKind> {
+    status: ActionResultStatus;
+    kind: K;
+    action: Extract<IAction, { kind: K }>['payload'];
+    result: Record<string, unknown>;
+}
