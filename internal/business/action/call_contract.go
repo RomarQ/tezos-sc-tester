@@ -70,7 +70,7 @@ func (action CallContractAction) Run(mockup business.Mockup) ActionResult {
 		Source:     action.Sender,
 		Entrypoint: action.Entrypoint,
 		Amount:     action.Amount,
-		Parameter:  micheline.Print(action.Parameter, ""),
+		Parameter:  expandPlaceholders(mockup, micheline.Print(action.Parameter, "")),
 	})
 	if err != nil {
 		return action.buildFailureResult(err.Error())

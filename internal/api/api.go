@@ -54,7 +54,7 @@ func (api *TestingAPI) RunTest(ctx echo.Context) error {
 	defer func() {
 		err := recover()
 		if err != nil {
-			Logger.Debug("Panic detected: %v", err)
+			Logger.Debug("Panic detected:", err)
 		}
 		// Teardown on exit
 		mockup.Teardown()

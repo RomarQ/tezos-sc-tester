@@ -76,7 +76,7 @@ func TestUnmarshal_OriginateContractAction(t *testing.T) {
 			action := OriginateContractAction{}
 			err = action.Unmarshal(rawJson)
 			assert.NotNil(t, err, "Must fail (name is invalid)")
-			assert.Equal(t, err.Error(), "String (contract 1) does not match pattern '^[a-zA-Z0-9._-]+$'.", "Assert error message")
+			assert.Equal(t, err.Error(), "String (contract 1) does not match pattern '^[a-zA-Z0-9_]+$'.", "Assert error message")
 		})
 	t.Run("Test OriginateContractAction Unmarshal (Missing fields)",
 		func(t *testing.T) {

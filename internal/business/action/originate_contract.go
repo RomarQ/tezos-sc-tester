@@ -70,8 +70,8 @@ func (action OriginateContractAction) Run(mockup business.Mockup) ActionResult {
 		return action.buildFailureResult(fmt.Sprintf("Name (%s) is already in use.", action.Name))
 	}
 
-	codeMicheline := micheline.Print(action.Code, "")
-	storageMicheline := micheline.Print(action.Storage, "")
+	codeMicheline := expandPlaceholders(mockup, micheline.Print(action.Code, ""))
+	storageMicheline := expandPlaceholders(mockup, micheline.Print(action.Storage, ""))
 	address, err := mockup.Originate(mockup.Config.Tezos.Originator, action.Name, action.Balance, codeMicheline, storageMicheline)
 	if err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)

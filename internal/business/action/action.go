@@ -36,7 +36,7 @@ const (
 )
 
 const (
-	STRING_IDENTIFIER_REGEX = "^[a-zA-Z0-9._-]+$"
+	STRING_IDENTIFIER_REGEX = "^[a-zA-Z0-9_]+$"
 	ENTRYPOINT_REGEX        = "^[a-zA-Z0-9_]{1,31}$"
 )
 
@@ -84,4 +84,8 @@ func ApplyActions(mockup business.Mockup, actions []IAction) []ActionResult {
 	}
 
 	return responses
+}
+
+func expandPlaceholders(mockup business.Mockup, str string) string {
+	return string(business.ExpandAccountPlaceholders(mockup.Addresses, []byte(str)))
 }

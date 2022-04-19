@@ -46,6 +46,6 @@ func TestUnmarshal_CreateImplicitAccountAction(t *testing.T) {
 				`),
 			)
 			assert.NotNil(t, err, "Must fail (name is invalid)")
-			assert.Equal(t, err.Error(), "String (bob A) does not match pattern '^[a-zA-Z0-9._-]+$'.", "Assert error message")
+			assert.Equal(t, err.Error(), "String (bob A) does not match pattern '^[a-zA-Z0-9_]+$'.", "Assert error message")
 		})
 }

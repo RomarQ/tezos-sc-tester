@@ -65,7 +65,7 @@ func TestUnmarshal_CallContractAction(t *testing.T) {
 				`),
 			)
 			assert.NotNil(t, err, "Must fail (name is invalid)")
-			assert.Equal(t, err.Error(), "String (contract 1) does not match pattern '^[a-zA-Z0-9._-]+$'.", "Assert error message")
+			assert.Equal(t, err.Error(), "String (contract 1) does not match pattern '^[a-zA-Z0-9_]+$'.", "Assert error message")
 		})
 	t.Run("Test CallContractAction Unmarshal (Invalid sender)",
 		func(t *testing.T) {
@@ -81,7 +81,7 @@ func TestUnmarshal_CallContractAction(t *testing.T) {
 				`),
 			)
 			assert.NotNil(t, err, "Must fail (sender is invalid)")
-			assert.Equal(t, err.Error(), "String (sender name) does not match pattern '^[a-zA-Z0-9._-]+$'.", "Assert error message")
+			assert.Equal(t, err.Error(), "String (sender name) does not match pattern '^[a-zA-Z0-9_]+$'.", "Assert error message")
 		})
 	t.Run("Test CallContractAction Unmarshal (Invalid entrypoint length)",
 		func(t *testing.T) {
