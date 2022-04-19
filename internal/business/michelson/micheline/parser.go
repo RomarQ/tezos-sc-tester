@@ -57,6 +57,9 @@ func (p *Parser) HasErrors() bool {
 }
 
 func (p *Parser) Error() error {
+	if !p.HasErrors() {
+		return nil
+	}
 	errors := make([]string, len(p.scanner.errors))
 	for _, err := range p.scanner.errors {
 		errors = append(errors, err.Message)

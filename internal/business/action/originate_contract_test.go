@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/romarq/visualtez-testing/internal/utils"
+	"github.com/romarq/visualtez-testing/internal/business/michelson"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,9 +18,9 @@ func TestUnmarshal_OriginateContractAction(t *testing.T) {
 					{ "prim": "code", "args": [ { "prim": "CDR" }, { "prim": "NIL", "args": [ { "prim": "operation" } ] }, { "prim": "PAIR" } ] }
 				]
 			`)
-			storage := map[string]interface{}{
-				"prim": "Unit",
-			}
+			storage := json.RawMessage(`
+				{ "prim": "Unit" }
+			`)
 			rawJson, err := json.MarshalIndent(
 				map[string]interface{}{
 					"name":    "contract_1",
@@ -44,19 +44,21 @@ func TestUnmarshal_OriginateContractAction(t *testing.T) {
 			assert.Equal(
 				t,
 				"10",
-				action.Balance,
+				action.Balance.String(),
 				"Assert balance",
 			)
+			ast, _ := michelson.ParseJSON(code)
 			assert.Equal(
 				t,
-				utils.PrettifyJSON(code),
-				utils.PrettifyJSON(action.Code),
+				ast.String(),
+				action.Code.String(),
 				"Assert code",
 			)
+			ast, _ = michelson.ParseJSON(storage)
 			assert.Equal(
 				t,
-				utils.PrettifyJSON(storage),
-				utils.PrettifyJSON(action.Storage),
+				ast.String(),
+				action.Storage.String(),
 				"Assert storage",
 			)
 		})

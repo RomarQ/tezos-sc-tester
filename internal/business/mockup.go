@@ -24,8 +24,8 @@ type (
 		Recipient  string
 		Source     string
 		Entrypoint string
+		Amount     Mutez
 		Parameter  string
-		Amount     *TMutez
 	}
 	Mockup struct {
 		TaskID    string
@@ -182,7 +182,7 @@ func (m Mockup) Transfer(arg CallContractArgument) error {
 		},
 		TezosClientArgument{
 			Kind:       COMMAND,
-			Parameters: []string{"transfer", TezOfMutez(arg.Amount).Text('f', 6), "from", arg.Source, "to", arg.Recipient},
+			Parameters: []string{"transfer", arg.Amount.ToTez().String(), "from", arg.Source, "to", arg.Recipient},
 		},
 	)
 	if arg.Entrypoint != "" {
@@ -222,7 +222,7 @@ func (m Mockup) Transfer(arg CallContractArgument) error {
 }
 
 // Reveal wallet
-func (m Mockup) RevealWallet(walletName string, revealFee *TMutez) error {
+func (m Mockup) RevealWallet(walletName string, revealFee Mutez) error {
 	logger.Debug("[Task #%s] - Revealing wallet (%s).", m.TaskID, walletName)
 
 	arguments := composeArguments(
@@ -244,7 +244,7 @@ func (m Mockup) RevealWallet(walletName string, revealFee *TMutez) error {
 		},
 		TezosClientArgument{
 			Kind:       Fee,
-			Parameters: []string{TezOfMutez(revealFee).Text('f', 6)},
+			Parameters: []string{revealFee.ToTez().String()},
 		},
 	)
 
@@ -252,7 +252,7 @@ func (m Mockup) RevealWallet(walletName string, revealFee *TMutez) error {
 	return err
 }
 
-func (m Mockup) GetBalance(name string) (*TMutez, error) {
+func (m Mockup) GetBalance(name string) (*Mutez, error) {
 	logger.Debug("[Task #%s] - Get balance of (%s).", m.TaskID, name)
 
 	arguments := composeArguments(
@@ -287,15 +287,16 @@ func (m Mockup) GetBalance(name string) (*TMutez, error) {
 		return nil, fmt.Errorf("Could not get the balance for account %s.", name)
 	}
 
-	balance, ok := new(TTez).SetString(match[1])
-	if ok {
-		return MutezOfTez(balance), nil
+	balance, err := TezOfString(match[1])
+	if err != nil {
+		return nil, err
 	}
 
-	return nil, fmt.Errorf("Could not get contract balance.")
+	mutez := balance.ToMutez()
+	return &mutez, nil
 }
 
-func (m *Mockup) Originate(sender string, contractName string, balance *TMutez, code string, storage string) (string, error) {
+func (m *Mockup) Originate(sender string, contractName string, amount Mutez, code string, storage string) (string, error) {
 	logger.Debug("[Task #%s] - Originating contract (%s).", m.TaskID, contractName)
 
 	arguments := composeArguments(
@@ -315,7 +316,7 @@ func (m *Mockup) Originate(sender string, contractName string, balance *TMutez, 
 			Kind: COMMAND,
 			Parameters: []string{
 				"originate", "contract", contractName,
-				"transferring", TezOfMutez(balance).Text('f', 6), "from", sender,
+				"transferring", amount.ToTez().String(), "from", sender,
 				"running", code,
 			},
 		},

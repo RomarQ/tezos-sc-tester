@@ -42,24 +42,27 @@ func (p *Parser) Parse(raw []byte) (node ast.Node, err error) {
 				Value: obj.Bytes,
 			}
 		case obj.isPrim():
-			annotations := make([]ast.Annotation, len(obj.Annots))
-			for i, el := range obj.Annots {
-				annotations[i] = p.parseAnnotation(el)
+			prim := ast.Prim{
+				Prim: obj.Prim,
 			}
-			arguments := make([]ast.Node, len(obj.Args))
-			for i, el := range obj.Args {
-				o, err := json.Marshal(el)
-				if err != nil {
-					p.errorf("could not parse argument of prim: %s.", err)
-					break
+			if len(obj.Annots) > 0 {
+				prim.Annotations = make([]ast.Annotation, len(obj.Annots))
+				for i, el := range obj.Annots {
+					prim.Annotations[i] = p.parseAnnotation(el)
 				}
-				arguments[i], _ = p.Parse(o)
 			}
-			node = ast.Prim{
-				Prim:        obj.Prim,
-				Annotations: annotations,
-				Arguments:   arguments,
+			if len(obj.Args) > 0 {
+				prim.Arguments = make([]ast.Node, len(obj.Args))
+				for i, el := range obj.Args {
+					o, err := json.Marshal(el)
+					if err != nil {
+						p.errorf("could not parse argument of prim: %s.", err)
+						break
+					}
+					prim.Arguments[i], _ = p.Parse(o)
+				}
 			}
+			node = prim
 		default:
 			p.errorf("unexpected Michelson JSON: %s.", utils.PrettifyJSON(raw))
 		}

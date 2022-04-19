@@ -29,7 +29,7 @@ func TestUnmarshal_CreateImplicitAccountAction(t *testing.T) {
 			assert.Equal(
 				t,
 				"10",
-				action.Balance,
+				action.Balance.String(),
 				"Assert balance",
 			)
 		})

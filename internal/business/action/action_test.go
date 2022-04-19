@@ -2,6 +2,7 @@ package action
 
 import (
 	"io"
+	"math/big"
 	"strings"
 	"testing"
 
@@ -25,15 +26,10 @@ func TestGetActions(t *testing.T) {
 			`))
 			actions, err := GetActions(reqBody)
 			assert.Nil(t, err, "Must not fail")
-			assert.ElementsMatch(
+			assert.Len(
 				t,
-				[]IAction{
-					&CreateImplicitAccountAction{
-						Name:    "alice",
-						Balance: "10",
-					},
-				},
 				actions,
+				1,
 				"Validate parsed actions",
 			)
 
@@ -73,11 +69,11 @@ func TestApplyActions(t *testing.T) {
 		func(t *testing.T) {
 			action_createImplicitAccount_alice := CreateImplicitAccountAction{
 				Name:    "alice",
-				Balance: "10",
+				Balance: business.MutezOfFloat(big.NewFloat(10)),
 			}
 			action_createImplicitAccount_bob := CreateImplicitAccountAction{
 				Name:    "bob",
-				Balance: "10",
+				Balance: business.MutezOfFloat(big.NewFloat(10)),
 			}
 			actions := []IAction{
 				&CreateImplicitAccountActionMock{action_createImplicitAccount_alice},
@@ -90,13 +86,13 @@ func TestApplyActions(t *testing.T) {
 					{
 						Status: Success,
 						Kind:   CreateImplicitAccount,
-						Action: action_createImplicitAccount_alice,
+						Action: action_createImplicitAccount_alice.json,
 						Result: map[string]interface{}{},
 					},
 					{
 						Status: Failure,
 						Kind:   CreateImplicitAccount,
-						Action: action_createImplicitAccount_bob,
+						Action: action_createImplicitAccount_bob.json,
 						Result: map[string]interface{}{
 							"details": "ERROR",
 						},

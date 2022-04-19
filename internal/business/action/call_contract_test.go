@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/romarq/visualtez-testing/internal/business/michelson/ast"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +19,7 @@ func TestUnmarshal_CallContractAction(t *testing.T) {
 						"sender":		"sender_name",
 						"entrypoint":	"do_something",
 						"amount":		"10",
-						"parameter":	"Unit"
+						"parameter":	{ "prim": "Unit" }
 					}
 				`),
 			)
@@ -38,12 +39,14 @@ func TestUnmarshal_CallContractAction(t *testing.T) {
 			assert.Equal(
 				t,
 				"10",
-				action.Amount,
+				action.Amount.String(),
 				"Assert amount",
 			)
 			assert.Equal(
 				t,
-				"Unit",
+				ast.Prim{
+					Prim: "Unit",
+				},
 				action.Parameter,
 				"Assert parameter",
 			)
@@ -57,7 +60,7 @@ func TestUnmarshal_CallContractAction(t *testing.T) {
 						"recipient":	"contract 1",
 						"sender":		"sender_name",
 						"amount":		"10",
-						"parameter":	"Unit"
+						"parameter":	{ "prim": "Unit" }
 					}
 				`),
 			)
@@ -73,7 +76,7 @@ func TestUnmarshal_CallContractAction(t *testing.T) {
 						"recipient":	"contract_1",
 						"sender":		"sender name",
 						"amount":		"10",
-						"parameter":	"Unit"
+						"parameter":	{ "prim": "Unit" }
 					}
 				`),
 			)
@@ -90,7 +93,7 @@ func TestUnmarshal_CallContractAction(t *testing.T) {
 						"sender":		"sender_name",
 						"entrypoint":	"abcdefghijlmnopqrstuvxz123456789",
 						"amount":		"10",
-						"parameter":	"Unit"
+						"parameter":	{ "prim": "Unit" }
 					}
 				`),
 			)
@@ -107,7 +110,7 @@ func TestUnmarshal_CallContractAction(t *testing.T) {
 						"sender":		"sender_name",
 						"entrypoint":	"a.a",
 						"amount":		"10",
-						"parameter":	"Unit"
+						"parameter":	{ "prim": "Unit" }
 					}
 				`),
 			)

@@ -7,15 +7,23 @@ import (
 
 	"github.com/romarq/visualtez-testing/internal/business"
 	"github.com/romarq/visualtez-testing/internal/business/michelson"
+	"github.com/romarq/visualtez-testing/internal/business/michelson/ast"
+	"github.com/romarq/visualtez-testing/internal/business/michelson/micheline"
 	"github.com/romarq/visualtez-testing/internal/logger"
 	"github.com/romarq/visualtez-testing/internal/utils"
 )
 
 type OriginateContractAction struct {
-	Name    string          `json:"name"`
-	Balance string          `json:"balance"`
-	Code    json.RawMessage `json:"code"`
-	Storage json.RawMessage `json:"storage"`
+	json struct {
+		Name    string          `json:"name"`
+		Balance string          `json:"balance"`
+		Code    json.RawMessage `json:"code"`
+		Storage json.RawMessage `json:"storage"`
+	}
+	Name    string
+	Balance business.Mutez
+	Code    ast.Node
+	Storage ast.Node
 }
 
 const (
@@ -24,12 +32,40 @@ const (
 
 // Unmarshal action
 func (action *OriginateContractAction) Unmarshal(bytes json.RawMessage) error {
-	if err := json.Unmarshal(bytes, &action); err != nil {
+	err := json.Unmarshal(bytes, &action.json)
+	if err != nil {
 		return err
 	}
 
 	// Validate action
-	return action.validate()
+	if err = action.validate(); err != nil {
+		return err
+	}
+
+	// "name" field
+	action.Name = action.json.Name
+
+	// "balance" field
+	action.Balance, err = business.MutezOfString(action.json.Balance)
+	if err != nil {
+		return err
+	}
+
+	// "code" field
+	action.Code, err = michelson.ParseJSON(action.json.Code)
+	if err != nil {
+		logger.Debug("%+v", action.json.Code)
+		return fmt.Errorf(`invalid code.`)
+	}
+
+	// "storage" field
+	action.Storage, err = michelson.ParseJSON(action.json.Storage)
+	if err != nil {
+		logger.Debug("%+v", action.json.Storage)
+		return fmt.Errorf(`invalid storage.`)
+	}
+
+	return nil
 }
 
 // Perform action (Originates a contract)
@@ -38,24 +74,9 @@ func (action OriginateContractAction) Run(mockup business.Mockup) ActionResult {
 		return action.buildFailureResult(fmt.Sprintf("Name (%s) is already in use.", action.Name))
 	}
 
-	codeMicheline, err := michelson.MichelineOfJSON(action.Code)
-	if err != nil {
-		msg := fmt.Sprintf("Could not convert code from %s to %s.", business.JSON, business.Michelson)
-		return action.buildFailureResult(msg)
-	}
-	storageMicheline, err := michelson.MichelineOfJSON(action.Storage)
-	if err != nil {
-		msg := fmt.Sprintf("Could not convert storage from %s to %s.", business.JSON, business.Michelson)
-		return action.buildFailureResult(msg)
-	}
-	balance, ok := new(business.TMutez).SetString(action.Balance)
-	if !ok {
-		errMsg := fmt.Sprintf("invalid mutez value (%s).", action.Balance)
-		logger.Debug("[Task #%s] - %s", mockup.TaskID, errMsg)
-		return action.buildFailureResult(errMsg)
-	}
-
-	address, err := mockup.Originate(default_originator, action.Name, balance, codeMicheline, storageMicheline)
+	codeMicheline := micheline.Print(action.Code, "")
+	storageMicheline := micheline.Print(action.Storage, "")
+	address, err := mockup.Originate(default_originator, action.Name, action.Balance, codeMicheline, storageMicheline)
 	if err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
 		return action.buildFailureResult(fmt.Sprintf("could not originate contract. %s", err))
@@ -71,15 +92,15 @@ func (action OriginateContractAction) Run(mockup business.Mockup) ActionResult {
 
 func (action OriginateContractAction) validate() error {
 	missingFields := make([]string, 0)
-	if action.Name == "" {
+	if action.json.Name == "" {
 		missingFields = append(missingFields, "name")
-	} else if err := utils.ValidateString(STRING_IDENTIFIER_REGEX, action.Name); err != nil {
+	} else if err := utils.ValidateString(STRING_IDENTIFIER_REGEX, action.json.Name); err != nil {
 		return err
 	}
-	if action.Code == nil {
+	if action.json.Code == nil {
 		missingFields = append(missingFields, "code")
 	}
-	if action.Storage == nil {
+	if action.json.Storage == nil {
 		missingFields = append(missingFields, "storage")
 	}
 
@@ -95,7 +116,7 @@ func (action OriginateContractAction) buildSuccessResult(result map[string]inter
 		Status: Success,
 		Kind:   OriginateContract,
 		Result: result,
-		Action: action,
+		Action: action.json,
 	}
 }
 
@@ -103,7 +124,7 @@ func (action OriginateContractAction) buildFailureResult(details string) ActionR
 	return ActionResult{
 		Status: Failure,
 		Kind:   OriginateContract,
-		Action: action,
+		Action: action.json,
 		Result: map[string]interface{}{
 			"details": details,
 		},

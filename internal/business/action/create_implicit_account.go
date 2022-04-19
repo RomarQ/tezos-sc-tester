@@ -12,8 +12,12 @@ import (
 )
 
 type CreateImplicitAccountAction struct {
-	Name    string `json:"name"`
-	Balance string `json:"balance"`
+	json struct {
+		Name    string `json:"name"`
+		Balance string `json:"balance"`
+	}
+	Name    string
+	Balance business.Mutez
 }
 
 const (
@@ -22,12 +26,26 @@ const (
 
 // Unmarshal action
 func (action *CreateImplicitAccountAction) Unmarshal(bytes json.RawMessage) error {
-	if err := json.Unmarshal(bytes, &action); err != nil {
+	err := json.Unmarshal(bytes, &action.json)
+	if err != nil {
 		return err
 	}
 
 	// Validate action
-	return action.validate()
+	if err = action.validate(); err != nil {
+		return err
+	}
+
+	// "name" field
+	action.Name = action.json.Name
+
+	// "balance" field
+	action.Balance, err = business.MutezOfString(action.json.Balance)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Perform action (Creates an implicit account)
@@ -51,23 +69,18 @@ func (action CreateImplicitAccountAction) Run(mockup business.Mockup) ActionResu
 
 	// Fund wallet
 	address := keyPair.Address().String()
-	balance, ok := new(business.TMutez).SetString(action.Balance)
-	if !ok {
-		errMsg := fmt.Sprintf("invalid mutez value (%s).", action.Balance)
-		logger.Debug("[Task #%s] - %s", mockup.TaskID, errMsg)
-		return action.buildFailureResult(errMsg)
-	}
+	revealCost := business.MutezOfFloat(big.NewFloat(revealFee))
 	if err = mockup.Transfer(business.CallContractArgument{
 		Recipient: address,
 		Source:    "bootstrap1",
-		Amount:    new(business.TMutez).Add(balance, big.NewFloat(revealFee)), // Increments revealFee which will be debited when revealing the wallet
+		Amount:    business.AddMutez(action.Balance, revealCost), // Increments revealFee which will be debited when revealing the wallet
 	}); err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
 		return action.buildFailureResult("Could not fund wallet.")
 	}
 
 	// Reveal wallet
-	if err = mockup.RevealWallet(action.Name, big.NewFloat(revealFee)); err != nil {
+	if err = mockup.RevealWallet(action.Name, revealCost); err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
 		return action.buildFailureResult("Could not reveal wallet.")
 	}
@@ -78,7 +91,7 @@ func (action CreateImplicitAccountAction) Run(mockup business.Mockup) ActionResu
 		return action.buildFailureResult("Failed to confirm balance.")
 	}
 	// Verify the wallet balance
-	if walletBalance.Cmp(balance) != 0 {
+	if walletBalance.String() != action.Balance.String() {
 		err := fmt.Sprintf("Account balance mismatch %s <> %s.", action.Balance, walletBalance.String())
 		return action.buildFailureResult(err)
 	}
@@ -93,9 +106,9 @@ func (action CreateImplicitAccountAction) Run(mockup business.Mockup) ActionResu
 
 func (action CreateImplicitAccountAction) validate() error {
 	missingFields := make([]string, 0)
-	if action.Name == "" {
+	if action.json.Name == "" {
 		missingFields = append(missingFields, "name")
-	} else if err := utils.ValidateString(STRING_IDENTIFIER_REGEX, action.Name); err != nil {
+	} else if err := utils.ValidateString(STRING_IDENTIFIER_REGEX, action.json.Name); err != nil {
 		return err
 	}
 
@@ -110,7 +123,7 @@ func (action CreateImplicitAccountAction) buildSuccessResult(result map[string]i
 		Status: Success,
 		Kind:   CreateImplicitAccount,
 		Result: result,
-		Action: action,
+		Action: action.json,
 	}
 }
 
@@ -118,7 +131,7 @@ func (action CreateImplicitAccountAction) buildFailureResult(details string) Act
 	return ActionResult{
 		Status: Failure,
 		Kind:   CreateImplicitAccount,
-		Action: action,
+		Action: action.json,
 		Result: map[string]interface{}{
 			"details": details,
 		},
