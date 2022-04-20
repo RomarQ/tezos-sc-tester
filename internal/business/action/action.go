@@ -57,6 +57,10 @@ func GetActions(body io.ReadCloser) ([]IAction, error) {
 		switch kind.String() {
 		default:
 			return nil, fmt.Errorf("Unexpected action kind (%s).", kind)
+		case string(AssertAccountBalance):
+			action = &AssertAccountBalanceAction{
+				raw: rawAction,
+			}
 		case string(CallContract):
 			action = &CallContractAction{
 				raw: rawAction,

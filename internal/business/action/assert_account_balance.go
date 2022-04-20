@@ -46,6 +46,20 @@ func (action *AssertAccountBalanceAction) Unmarshal() error {
 	return nil
 }
 
+// Marshal returns the JSON of the action (cached)
+func (action AssertAccountBalanceAction) Marshal() json.RawMessage {
+	return action.raw
+}
+
+// Perform the action
+func (action AssertAccountBalanceAction) Run(mockup business.Mockup) (interface{}, bool) {
+	balance := mockup.GetBalance(action.AccountName)
+
+	return map[string]string{
+		"balance": balance.String(),
+	}, balance.String() == action.Balance.String()
+}
+
 func (action AssertAccountBalanceAction) validate() error {
 	missingFields := make([]string, 0)
 	if action.json.Payload.AccountName == "" {
