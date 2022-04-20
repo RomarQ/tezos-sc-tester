@@ -85,14 +85,12 @@ func TestApplyActions(t *testing.T) {
 				[]ActionResult{
 					{
 						Status: Success,
-						Kind:   CreateImplicitAccount,
-						Action: action_createImplicitAccount_alice.json,
+						Action: action_createImplicitAccount_alice.raw,
 						Result: map[string]interface{}{},
 					},
 					{
 						Status: Failure,
-						Kind:   CreateImplicitAccount,
-						Action: action_createImplicitAccount_bob.json,
+						Action: action_createImplicitAccount_bob.raw,
 						Result: map[string]interface{}{
 							"details": "ERROR",
 						},
@@ -110,9 +108,9 @@ type CreateImplicitAccountActionMock struct {
 	CreateImplicitAccountAction
 }
 
-func (action CreateImplicitAccountActionMock) Run(mockup business.Mockup) ActionResult {
+func (action CreateImplicitAccountActionMock) Run(mockup business.Mockup) (interface{}, bool) {
 	if action.Name == "bob" {
-		return action.buildFailureResult("ERROR")
+		return "ERROR", false
 	}
-	return action.buildSuccessResult(map[string]interface{}{})
+	return map[string]interface{}{}, true
 }

@@ -15,18 +15,18 @@ import (
 type (
 	ActionStatus string
 	ActionResult struct {
-		Status ActionStatus           `json:"status"`
-		Kind   ActionKind             `json:"kind"`
-		Action interface{}            `json:"action"`
-		Result map[string]interface{} `json:"result,omitempty"`
+		Status ActionStatus `json:"status"`
+		Action interface{}  `json:"action"`
+		Result interface{}  `json:"result,omitempty"`
 	}
 	Action struct {
 		Kind    ActionKind  `json:"kind"`
 		Payload interface{} `json:"payload"`
 	}
 	IAction interface {
-		Run(mockup business.Mockup) ActionResult
-		Unmarshal(bytes json.RawMessage) error
+		Run(mockup business.Mockup) (interface{}, bool)
+		Unmarshal() error
+		Marshal() json.RawMessage
 	}
 )
 
@@ -58,15 +58,20 @@ func GetActions(body io.ReadCloser) ([]IAction, error) {
 		default:
 			return nil, fmt.Errorf("Unexpected action kind (%s).", kind)
 		case string(CallContract):
-			action = &CallContractAction{}
+			action = &CallContractAction{
+				raw: rawAction,
+			}
 		case string(OriginateContract):
-			action = &OriginateContractAction{}
+			action = &OriginateContractAction{
+				raw: rawAction,
+			}
 		case string(CreateImplicitAccount):
-			action = &CreateImplicitAccountAction{}
+			action = &CreateImplicitAccountAction{
+				raw: rawAction,
+			}
 		}
 
-		payload := gjson.GetBytes(rawAction, "payload")
-		if err = action.Unmarshal(json.RawMessage(payload.Raw)); err != nil {
+		if err = action.Unmarshal(); err != nil {
 			return nil, Error.DetailedHttpError(http.StatusBadRequest, err.Error(), rawAction)
 		}
 		actions = append(actions, action)
@@ -80,7 +85,13 @@ func ApplyActions(mockup business.Mockup, actions []IAction) []ActionResult {
 	responses := make([]ActionResult, 0)
 
 	for _, action := range actions {
-		responses = append(responses, action.Run(mockup))
+		result, ok := action.Run(mockup)
+		if ok {
+			responses = append(responses, buildSuccessResult(result, action))
+		} else {
+			responses = append(responses, buildFailureResult(result, action))
+
+		}
 	}
 
 	return responses
@@ -93,4 +104,22 @@ func expandPlaceholders(mockup business.Mockup, str string) string {
 	b = business.ExpandBalancePlaceholders(mockup, b)
 
 	return string(b)
+}
+
+func buildSuccessResult(result interface{}, action IAction) ActionResult {
+	return ActionResult{
+		Status: Success,
+		Action: action.Marshal(),
+		Result: result,
+	}
+}
+
+func buildFailureResult(details interface{}, action IAction) ActionResult {
+	return ActionResult{
+		Status: Failure,
+		Action: action.Marshal(),
+		Result: map[string]interface{}{
+			"details": details,
+		},
+	}
 }

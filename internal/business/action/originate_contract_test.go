@@ -23,17 +23,20 @@ func TestUnmarshal_OriginateContractAction(t *testing.T) {
 			`)
 			rawJson, err := json.MarshalIndent(
 				map[string]interface{}{
-					"name":    "contract_1",
-					"balance": "10",
-					"code":    code,
-					"storage": storage,
+					"kind": OriginateContract,
+					"payload": map[string]interface{}{
+						"name":    "contract_1",
+						"balance": "10",
+						"code":    code,
+						"storage": storage,
+					},
 				},
 				"",
 				"",
 			)
 			assert.Nil(t, err)
-			action := OriginateContractAction{}
-			err = action.Unmarshal(rawJson)
+			action := OriginateContractAction{raw: rawJson}
+			err = action.Unmarshal()
 			assert.Nil(t, err, "Must not fail")
 			assert.Equal(
 				t,
@@ -66,23 +69,26 @@ func TestUnmarshal_OriginateContractAction(t *testing.T) {
 		func(t *testing.T) {
 			rawJson, err := json.MarshalIndent(
 				map[string]interface{}{
-					"name":    "contract 1",
-					"balance": "10",
+					"kind": OriginateContract,
+					"payload": map[string]interface{}{
+						"name":    "contract 1",
+						"balance": "10",
+					},
 				},
 				"",
 				"",
 			)
 			assert.Nil(t, err)
-			action := OriginateContractAction{}
-			err = action.Unmarshal(rawJson)
+			action := OriginateContractAction{raw: rawJson}
+			err = action.Unmarshal()
 			assert.NotNil(t, err, "Must fail (name is invalid)")
 			assert.Equal(t, err.Error(), "String (contract 1) does not match pattern '^[a-zA-Z0-9_]+$'.", "Assert error message")
 		})
 	t.Run("Test OriginateContractAction Unmarshal (Missing fields)",
 		func(t *testing.T) {
 			rawJson := json.RawMessage(`{}`)
-			action := OriginateContractAction{}
-			err := action.Unmarshal(rawJson)
+			action := OriginateContractAction{raw: rawJson}
+			err := action.Unmarshal()
 			assert.NotNil(t, err, "Must fail (Missing fields)")
 			assert.Equal(t, err.Error(), "Action of kind (originate_contract) misses the following fields [name, code, storage].", "Assert error message")
 		})

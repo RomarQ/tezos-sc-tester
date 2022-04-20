@@ -10,15 +10,18 @@ import (
 func TestUnmarshal_CreateImplicitAccountAction(t *testing.T) {
 	t.Run("Test CreateImplicitAccountAction Unmarshal (Valid)",
 		func(t *testing.T) {
-			action := CreateImplicitAccountAction{}
-			err := action.Unmarshal(
-				json.RawMessage(`
+			action := CreateImplicitAccountAction{
+				raw: json.RawMessage(`
 					{
-						"name":    "bob",
-						"balance": "10"
+						"kind": "create_implicit_account",
+						"payload": {
+							"name":    "bob",
+							"balance": "10"
+						}
 					}
 				`),
-			)
+			}
+			err := action.Unmarshal()
 			assert.Nil(t, err, "Must not fail")
 			assert.Equal(
 				t,
@@ -36,15 +39,18 @@ func TestUnmarshal_CreateImplicitAccountAction(t *testing.T) {
 
 	t.Run("Test CreateImplicitAccountAction Unmarshal (Invalid)",
 		func(t *testing.T) {
-			action := CreateImplicitAccountAction{}
-			err := action.Unmarshal(
-				json.RawMessage(`
+			action := CreateImplicitAccountAction{
+				raw: json.RawMessage(`
 					{
-						"name":    "bob A",
-						"balance": "10"
+						"kind": "create_implicit_account",
+						"payload": {
+							"name":    "bob A",
+							"balance": "10"
+						}
 					}
 				`),
-			)
+			}
+			err := action.Unmarshal()
 			assert.NotNil(t, err, "Must fail (name is invalid)")
 			assert.Equal(t, err.Error(), "String (bob A) does not match pattern '^[a-zA-Z0-9_]+$'.", "Assert error message")
 		})

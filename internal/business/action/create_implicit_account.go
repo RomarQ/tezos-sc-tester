@@ -12,17 +12,21 @@ import (
 )
 
 type CreateImplicitAccountAction struct {
+	raw  json.RawMessage
 	json struct {
-		Name    string `json:"name"`
-		Balance string `json:"balance"`
+		Kind    string `json:"kind"`
+		Payload struct {
+			Name    string `json:"name"`
+			Balance string `json:"balance"`
+		} `json:"payload"`
 	}
 	Name    string
 	Balance business.Mutez
 }
 
 // Unmarshal action
-func (action *CreateImplicitAccountAction) Unmarshal(bytes json.RawMessage) error {
-	err := json.Unmarshal(bytes, &action.json)
+func (action *CreateImplicitAccountAction) Unmarshal() error {
+	err := json.Unmarshal(action.raw, &action.json)
 	if err != nil {
 		return err
 	}
@@ -33,10 +37,10 @@ func (action *CreateImplicitAccountAction) Unmarshal(bytes json.RawMessage) erro
 	}
 
 	// "name" field
-	action.Name = action.json.Name
+	action.Name = action.json.Payload.Name
 
 	// "balance" field
-	action.Balance, err = business.MutezOfString(action.json.Balance)
+	action.Balance, err = business.MutezOfString(action.json.Payload.Balance)
 	if err != nil {
 		return err
 	}
@@ -44,23 +48,28 @@ func (action *CreateImplicitAccountAction) Unmarshal(bytes json.RawMessage) erro
 	return nil
 }
 
+// Marshal returns the JSON of the action (cached)
+func (a CreateImplicitAccountAction) Marshal() json.RawMessage {
+	return a.raw
+}
+
 // Perform action (Creates an implicit account)
-func (action CreateImplicitAccountAction) Run(mockup business.Mockup) ActionResult {
+func (action CreateImplicitAccountAction) Run(mockup business.Mockup) (interface{}, bool) {
 	if mockup.ContainsAddress(action.Name) {
-		return action.buildFailureResult(fmt.Sprintf("Name (%s) is already in use.", action.Name))
+		return fmt.Sprintf("Name (%s) is already in use.", action.Name), false
 	}
 
 	keyPair, err := utils.GenerateKey()
 	if err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
-		return action.buildFailureResult("Could not generate wallet.")
+		return "Could not generate wallet.", false
 	}
 
 	// Import private key
 	privateKey := keyPair.String()
 	if err = mockup.ImportSecret(privateKey, action.Name); err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
-		return action.buildFailureResult("Could not import wallet.")
+		return "Could not import wallet.", false
 	}
 
 	// Fund wallet
@@ -72,13 +81,13 @@ func (action CreateImplicitAccountAction) Run(mockup business.Mockup) ActionResu
 		Amount:    business.AddMutez(action.Balance, revealCost), // Increments revealFee which will be debited when revealing the wallet
 	}); err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
-		return action.buildFailureResult("Could not fund wallet.")
+		return "Could not fund wallet.", false
 	}
 
 	// Reveal wallet
 	if err = mockup.RevealWallet(action.Name, revealCost); err != nil {
 		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
-		return action.buildFailureResult("Could not reveal wallet.")
+		return "Could not reveal wallet.", false
 	}
 
 	// Confirm that the wallet was funded with the expected amount
@@ -86,22 +95,22 @@ func (action CreateImplicitAccountAction) Run(mockup business.Mockup) ActionResu
 	// Verify the wallet balance
 	if walletBalance.String() != action.Balance.String() {
 		err := fmt.Sprintf("Account balance mismatch %s <> %s.", action.Balance, walletBalance.String())
-		return action.buildFailureResult(err)
+		return err, false
 	}
 
 	// Save new address
 	mockup.SetAddress(action.Name, address)
 
-	return action.buildSuccessResult(map[string]interface{}{
+	return map[string]interface{}{
 		"address": address,
-	})
+	}, true
 }
 
 func (action CreateImplicitAccountAction) validate() error {
 	missingFields := make([]string, 0)
-	if action.json.Name == "" {
+	if action.json.Payload.Name == "" {
 		missingFields = append(missingFields, "name")
-	} else if err := utils.ValidateString(STRING_IDENTIFIER_REGEX, action.json.Name); err != nil {
+	} else if err := utils.ValidateString(STRING_IDENTIFIER_REGEX, action.json.Payload.Name); err != nil {
 		return err
 	}
 
@@ -109,24 +118,4 @@ func (action CreateImplicitAccountAction) validate() error {
 		return fmt.Errorf("Action of kind (%s) misses the following fields [%s].", CreateImplicitAccount, strings.Join(missingFields, ", "))
 	}
 	return nil
-}
-
-func (action CreateImplicitAccountAction) buildSuccessResult(result map[string]interface{}) ActionResult {
-	return ActionResult{
-		Status: Success,
-		Kind:   CreateImplicitAccount,
-		Result: result,
-		Action: action.json,
-	}
-}
-
-func (action CreateImplicitAccountAction) buildFailureResult(details string) ActionResult {
-	return ActionResult{
-		Status: Failure,
-		Kind:   CreateImplicitAccount,
-		Action: action.json,
-		Result: map[string]interface{}{
-			"details": details,
-		},
-	}
 }

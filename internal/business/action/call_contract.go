@@ -14,12 +14,16 @@ import (
 )
 
 type CallContractAction struct {
+	raw  json.RawMessage
 	json struct {
-		Recipient  string          `json:"recipient"`
-		Sender     string          `json:"sender"`
-		Entrypoint string          `json:"entrypoint"`
-		Amount     string          `json:"amount"`
-		Parameter  json.RawMessage `json:"parameter"`
+		Kind    string `json:"kind"`
+		Payload struct {
+			Recipient  string          `json:"recipient"`
+			Sender     string          `json:"sender"`
+			Entrypoint string          `json:"entrypoint"`
+			Amount     string          `json:"amount"`
+			Parameter  json.RawMessage `json:"parameter"`
+		} `json:"payload"`
 	}
 	Recipient  string
 	Sender     string
@@ -29,8 +33,8 @@ type CallContractAction struct {
 }
 
 // Unmarshal action
-func (action *CallContractAction) Unmarshal(bytes json.RawMessage) error {
-	err := json.Unmarshal(bytes, &action.json)
+func (action *CallContractAction) Unmarshal() error {
+	err := json.Unmarshal(action.raw, &action.json)
 	if err != nil {
 		return err
 	}
@@ -41,30 +45,35 @@ func (action *CallContractAction) Unmarshal(bytes json.RawMessage) error {
 	}
 
 	// "recipient" field
-	action.Recipient = action.json.Recipient
+	action.Recipient = action.json.Payload.Recipient
 	// "sender" field
-	action.Sender = action.json.Sender
+	action.Sender = action.json.Payload.Sender
 	// "entrypoint" field
-	action.Entrypoint = action.json.Entrypoint
+	action.Entrypoint = action.json.Payload.Entrypoint
 
 	// "amount" field
-	action.Amount, err = business.MutezOfString(action.json.Amount)
+	action.Amount, err = business.MutezOfString(action.json.Payload.Amount)
 	if err != nil {
 		return err
 	}
 
 	// "parameter" field
-	action.Parameter, err = michelson.ParseJSON(action.json.Parameter)
+	action.Parameter, err = michelson.ParseJSON(action.json.Payload.Parameter)
 	if err != nil {
-		logger.Debug("%+v", action.json.Parameter)
+		logger.Debug("%+v", action.json.Payload.Parameter)
 		return fmt.Errorf(`invalid parameter.`)
 	}
 
 	return nil
 }
 
+// Marshal returns the JSON of the action (cached)
+func (a CallContractAction) Marshal() json.RawMessage {
+	return a.raw
+}
+
 // Perform the action
-func (action CallContractAction) Run(mockup business.Mockup) ActionResult {
+func (action CallContractAction) Run(mockup business.Mockup) (interface{}, bool) {
 	err := mockup.Transfer(business.CallContractArgument{
 		Recipient:  action.Recipient,
 		Source:     action.Sender,
@@ -73,30 +82,30 @@ func (action CallContractAction) Run(mockup business.Mockup) ActionResult {
 		Parameter:  expandPlaceholders(mockup, micheline.Print(action.Parameter, "")),
 	})
 	if err != nil {
-		return action.buildFailureResult(err.Error())
+		return err.Error(), false
 	}
 
-	return action.buildSuccessResult(map[string]interface{}{})
+	return map[string]interface{}{}, true
 }
 
 func (action CallContractAction) validate() error {
 	missingFields := make([]string, 0)
-	if action.json.Recipient == "" {
+	if action.json.Payload.Recipient == "" {
 		missingFields = append(missingFields, "recipient")
-	} else if err := utils.ValidateString(STRING_IDENTIFIER_REGEX, action.json.Recipient); err != nil {
+	} else if err := utils.ValidateString(STRING_IDENTIFIER_REGEX, action.json.Payload.Recipient); err != nil {
 		return err
 	}
-	if action.json.Sender == "" {
+	if action.json.Payload.Sender == "" {
 		missingFields = append(missingFields, "sender")
-	} else if err := utils.ValidateString(STRING_IDENTIFIER_REGEX, action.json.Sender); err != nil {
+	} else if err := utils.ValidateString(STRING_IDENTIFIER_REGEX, action.json.Payload.Sender); err != nil {
 		return err
 	}
-	if action.json.Entrypoint == "" {
+	if action.json.Payload.Entrypoint == "" {
 		missingFields = append(missingFields, "entrypoint")
-	} else if err := utils.ValidateString(ENTRYPOINT_REGEX, action.json.Entrypoint); err != nil {
+	} else if err := utils.ValidateString(ENTRYPOINT_REGEX, action.json.Payload.Entrypoint); err != nil {
 		return err
 	}
-	if action.json.Parameter == nil {
+	if action.json.Payload.Parameter == nil {
 		missingFields = append(missingFields, "parameter")
 	}
 
@@ -105,24 +114,4 @@ func (action CallContractAction) validate() error {
 	}
 
 	return nil
-}
-
-func (action CallContractAction) buildSuccessResult(result map[string]interface{}) ActionResult {
-	return ActionResult{
-		Status: Success,
-		Kind:   CallContract,
-		Result: result,
-		Action: action.json,
-	}
-}
-
-func (action CallContractAction) buildFailureResult(details string) ActionResult {
-	return ActionResult{
-		Status: Failure,
-		Kind:   CallContract,
-		Action: action.json,
-		Result: map[string]interface{}{
-			"details": details,
-		},
-	}
 }

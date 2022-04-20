@@ -58,9 +58,8 @@ func TestRunTest(t *testing.T) {
 
 			actionResult := result[0]
 			assert.Equal(t, actionResult.Status, action.Success, "Action status must be (success)")
-			assert.Equal(t, actionResult.Kind, action.CreateImplicitAccount, "Validate action kind")
-			assert.Equal(t, actionResult.Action, CreateImplicitAccountAction["payload"], "Validate action payload")
-			assert.Equal(t, fmt.Sprintf("%v", actionResult.Result["address"])[0:3], "tz1", actionResult.Result)
+			assert.Equal(t, utils.PrettifyJSON(actionResult.Action), utils.PrettifyJSON(CreateImplicitAccountAction), "Validate action request")
+			assert.Contains(t, fmt.Sprintf("%v", actionResult.Result), "tz1", actionResult.Result)
 		})
 
 	t.Run("Originate Contract",
@@ -137,8 +136,7 @@ func TestRunTest(t *testing.T) {
 
 			actionResult := result[0]
 			assert.Equal(t, actionResult.Status, action.Success, "Action result must be (success)")
-			assert.Equal(t, actionResult.Kind, action.OriginateContract, "Validate action kind")
-			assert.Equal(t, utils.PrettifyJSON(actionResult.Action), utils.PrettifyJSON(OriginateContractAction["payload"]), "Validate action payload")
-			assert.Equal(t, fmt.Sprintf("%v", actionResult.Result["address"])[0:3], "KT1", actionResult.Result)
+			assert.Equal(t, utils.PrettifyJSON(actionResult.Action), utils.PrettifyJSON(OriginateContractAction), "Validate action request")
+			assert.Contains(t, fmt.Sprintf("%v", actionResult.Result), "KT1", actionResult.Result)
 		})
 }
