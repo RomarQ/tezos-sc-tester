@@ -3,6 +3,7 @@ package business
 import (
 	"bytes"
 	"fmt"
+	"math/big"
 	"os"
 	"os/exec"
 	"regexp"
@@ -252,7 +253,7 @@ func (m Mockup) RevealWallet(walletName string, revealFee Mutez) error {
 	return err
 }
 
-func (m Mockup) GetBalance(name string) (*Mutez, error) {
+func (m Mockup) GetBalance(name string) Mutez {
 	logger.Debug("[Task #%s] - Get balance of (%s).", m.TaskID, name)
 
 	arguments := composeArguments(
@@ -277,23 +278,22 @@ func (m Mockup) GetBalance(name string) (*Mutez, error) {
 	// Execute command
 	output, err := m.runTezosClient(m.getTezosClientPath(), arguments)
 	if err != nil {
-		return nil, err
+		return MutezOfFloat(big.NewFloat(0))
 	}
 
 	// Extract balance in ꜩ
 	pattern := regexp.MustCompile(`(\d*.?\d*)\sꜩ`)
 	match := pattern.FindStringSubmatch(output)
 	if len(match) < 2 {
-		return nil, fmt.Errorf("Could not get the balance for account %s.", name)
+		return MutezOfFloat(big.NewFloat(0))
 	}
 
 	balance, err := TezOfString(match[1])
 	if err != nil {
-		return nil, err
+		return MutezOfFloat(big.NewFloat(0))
 	}
 
-	mutez := balance.ToMutez()
-	return &mutez, nil
+	return balance.ToMutez()
 }
 
 func (m *Mockup) Originate(sender string, contractName string, amount Mutez, code string, storage string) (string, error) {

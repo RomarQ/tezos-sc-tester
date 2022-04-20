@@ -82,10 +82,7 @@ func (action CreateImplicitAccountAction) Run(mockup business.Mockup) ActionResu
 	}
 
 	// Confirm that the wallet was funded with the expected amount
-	walletBalance, err := mockup.GetBalance(action.Name)
-	if err != nil {
-		return action.buildFailureResult("Failed to confirm balance.")
-	}
+	walletBalance := mockup.GetBalance(action.Name)
 	// Verify the wallet balance
 	if walletBalance.String() != action.Balance.String() {
 		err := fmt.Sprintf("Account balance mismatch %s <> %s.", action.Balance, walletBalance.String())

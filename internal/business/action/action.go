@@ -87,5 +87,10 @@ func ApplyActions(mockup business.Mockup, actions []IAction) []ActionResult {
 }
 
 func expandPlaceholders(mockup business.Mockup, str string) string {
-	return string(business.ExpandAccountPlaceholders(mockup.Addresses, []byte(str)))
+	// Expand addresses
+	b := business.ExpandAccountPlaceholders(mockup.Addresses, []byte(str))
+	// Expand balances
+	b = business.ExpandBalancePlaceholders(mockup, b)
+
+	return string(b)
 }

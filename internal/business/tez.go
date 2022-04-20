@@ -14,14 +14,14 @@ type (
 	}
 )
 
-// TezOf construct a Tez value from big.Float
+// TezOfFloat construct a Tez value from big.Float
 func TezOfFloat(value *big.Float) Tez {
 	return Tez{
 		v: value,
 	}
 }
 
-// TezOfString
+// TezOfString construct a Tez value from a string
 func TezOfString(value string) (t Tez, err error) {
 	v, ok := new(big.Float).SetString(value)
 	if !ok {
@@ -31,14 +31,14 @@ func TezOfString(value string) (t Tez, err error) {
 	return
 }
 
-// MutezOf construct a Mutez value from big.Float
+// MutezOfFloat construct a Mutez value from big.Float
 func MutezOfFloat(value *big.Float) Mutez {
 	return Mutez{
 		v: value,
 	}
 }
 
-// MutezOfString
+// MutezOfString construct a Mutez value from a string
 func MutezOfString(value string) (t Mutez, err error) {
 	v, ok := new(big.Float).SetString(value)
 	if !ok {
