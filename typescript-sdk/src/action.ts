@@ -3,11 +3,25 @@ export enum ActionKind {
     CreateImplicitAccount = 'create_implicit_account',
     OriginateContract = 'originate_contract',
     CallContract = 'call_contract',
+    AssertAccountBalance = 'assert_account_balance',
 }
 // Action result status
 export enum ActionResultStatus {
     Success = 'success',
     Failure = 'failure',
+}
+
+export type IAction =
+    | ICreateImplicitAccountAction
+    | IOriginateContractAction
+    | ICallContractAction
+    | IAssertAccountBalanceAction;
+
+export interface IActionResult<K extends ActionKind> {
+    status: ActionResultStatus;
+    kind: K;
+    action: Extract<IAction, { kind: K }>['payload'];
+    result: Record<string, unknown>;
 }
 
 // create_implicit_account
@@ -48,11 +62,13 @@ export interface ICallContractAction {
     payload: ICallContractPayload;
 }
 
-export type IAction = ICreateImplicitAccountAction | IOriginateContractAction | ICallContractAction;
+// assert_account_balance
 
-export interface IActionResult<K extends ActionKind> {
-    status: ActionResultStatus;
-    kind: K;
-    action: Extract<IAction, { kind: K }>['payload'];
-    result: Record<string, unknown>;
+export interface IAssertAccountBalancePayload {
+    account_name: string;
+    balance: string;
+}
+export interface IAssertAccountBalanceAction {
+    kind: ActionKind.AssertAccountBalance;
+    payload: IAssertAccountBalancePayload;
 }

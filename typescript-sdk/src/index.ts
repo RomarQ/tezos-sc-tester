@@ -1,6 +1,7 @@
 import {
     ActionKind,
     IAction,
+    IAssertAccountBalancePayload,
     ICallContractPayload,
     ICreateImplicitAccountPayload,
     IOriginateContractPayload,
@@ -36,5 +37,27 @@ export const buildOriginateContractAction = (payload: IOriginateContractPayload)
  */
 export const buildCallContractAction = (payload: ICallContractPayload): IAction => ({
     kind: ActionKind.CallContract,
+    payload,
+});
+
+/**
+ * Builds an action for asserting the balance of a given contract
+ *
+ * @param payload action payload
+ * @returns action
+ */
+export const buildAssertCallContractAction = (payload: IAssertAccountBalancePayload): IAction => ({
+    kind: ActionKind.AssertAccountBalance,
+    payload,
+});
+
+/**
+ * Builds an action
+ *
+ * @param payload action payload
+ * @returns IAction
+ */
+export const buildAction = <T extends ActionKind>(kind: T, payload: Extract<IAction, { kind: T }>['payload']) => ({
+    kind,
     payload,
 });
