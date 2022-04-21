@@ -87,9 +87,6 @@ func (action OriginateContractAction) Run(mockup business.Mockup) (interface{}, 
 		return fmt.Sprintf("could not originate contract. %s", err), false
 	}
 
-	// Save new address
-	mockup.SetAddress(action.Name, address)
-
 	return map[string]interface{}{
 		"address": address,
 	}, true

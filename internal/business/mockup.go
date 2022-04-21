@@ -8,6 +8,8 @@ import (
 	"os/exec"
 	"regexp"
 
+	"github.com/romarq/visualtez-testing/internal/business/michelson"
+	"github.com/romarq/visualtez-testing/internal/business/michelson/ast"
 	"github.com/romarq/visualtez-testing/internal/config"
 	"github.com/romarq/visualtez-testing/internal/logger"
 )
@@ -336,20 +338,24 @@ func (m *Mockup) Originate(sender string, contractName string, amount Mutez, cod
 
 	output, err := m.runTezosClient(m.getTezosClientPath(), arguments)
 	if err != nil {
+		logger.Debug("could originate contract. %s", err)
 		return "", err
 	}
 
-	// Extract balance in ꜩ
+	// Extract contract address
 	pattern := regexp.MustCompile(`New\scontract\s(\w+)\soriginated`)
 	match := pattern.FindStringSubmatch(output)
-	if len(match) < 2 {
+	if len(match) < 2 || len(match[1]) < 36 || match[1][0:3] != "KT1" {
 		return "", fmt.Errorf("Could not extract the contract address from origination output.")
 	}
+
+	// Cache contract address
+	m.SetAddress(contractName, match[1])
 
 	return match[1], nil
 }
 
-func (m Mockup) GetContractStorage(contractName string) (string, error) {
+func (m Mockup) GetContractStorage(contractName string) (ast.Node, error) {
 	logger.Debug("[Task #%s] - Get storage from contract (%s).", m.TaskID, contractName)
 
 	arguments := composeArguments(
@@ -375,10 +381,15 @@ func (m Mockup) GetContractStorage(contractName string) (string, error) {
 
 	output, err := m.runTezosClient(m.getTezosClientPath(), arguments)
 	if err != nil {
-		return "", err
+		return nil, fmt.Errorf("could not fetch storage from contract (%s). %s", contractName, err)
 	}
 
-	return output, nil
+	ast, err := michelson.ParseMicheline(output)
+	if err != nil {
+		return nil, fmt.Errorf("could parse contract (%s) storage from 'micheline' format. %s", contractName, err)
+	}
+
+	return ast, nil
 }
 
 // Convert script format between "michelson" and "json"

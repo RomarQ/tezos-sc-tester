@@ -53,6 +53,10 @@ func GetActions(rawActions []json.RawMessage) ([]IAction, error) {
 			action = &AssertAccountBalanceAction{
 				raw: rawAction,
 			}
+		case string(AssertContractStorage):
+			action = &AssertContractStorageAction{
+				raw: rawAction,
+			}
 		case string(CallContract):
 			action = &CallContractAction{
 				raw: rawAction,
