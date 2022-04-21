@@ -40,7 +40,11 @@ func TestRunTest(t *testing.T) {
 					"balance": "10",
 				},
 			}
-			actions, _ := json.Marshal([]map[string]interface{}{CreateImplicitAccountAction})
+			actions, _ := json.Marshal(
+				map[string]interface{}{
+					"actions": []map[string]interface{}{CreateImplicitAccountAction},
+				},
+			)
 			e := echo.New()
 			req := httptest.NewRequest(echo.POST, TESTING_URL, bytes.NewReader(actions))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -118,7 +122,11 @@ func TestRunTest(t *testing.T) {
 					},
 				},
 			}
-			actions, _ := json.Marshal([]map[string]interface{}{OriginateContractAction})
+			actions, _ := json.Marshal(
+				map[string]interface{}{
+					"actions": []map[string]interface{}{OriginateContractAction},
+				},
+			)
 			e := echo.New()
 			req := httptest.NewRequest(echo.POST, TESTING_URL, bytes.NewReader(actions))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)

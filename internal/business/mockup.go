@@ -67,9 +67,13 @@ func InitMockup(taskID string, cfg config.Config) Mockup {
 }
 
 // Bootstrap a mockup environment for the task
-func (m Mockup) Bootstrap() error {
+func (m Mockup) Bootstrap(protocol string) error {
 	temporaryDirectory := m.getTaskDirectory()
 	logger.Debug("[Task #%s] - Creating task directory (%s).", m.TaskID, temporaryDirectory)
+
+	if protocol == "" {
+		protocol = m.Config.Tezos.DefaultProtocol
+	}
 
 	arguments := composeArguments(
 		TezosClientArgument{
@@ -82,7 +86,7 @@ func (m Mockup) Bootstrap() error {
 		},
 		TezosClientArgument{
 			Kind:       Protocol,
-			Parameters: []string{m.Config.Tezos.DefaultProtocol},
+			Parameters: []string{protocol},
 		},
 		TezosClientArgument{
 			Kind:       COMMAND,

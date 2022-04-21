@@ -1,9 +1,8 @@
 package action
 
 import (
-	"io"
+	"encoding/json"
 	"math/big"
-	"strings"
 	"testing"
 
 	"github.com/romarq/visualtez-testing/internal/business"
@@ -13,18 +12,18 @@ import (
 func TestGetActions(t *testing.T) {
 	t.Run("Test GetActions (No errors)",
 		func(t *testing.T) {
-			reqBody := io.NopCloser(strings.NewReader(`
-			[
-				{
-					"kind": "create_implicit_account",
-					"payload": {
-						"name": "alice",
-						"balance": "10"
+			rawActions := []json.RawMessage{
+				json.RawMessage(`
+					{
+						"kind": "create_implicit_account",
+						"payload": {
+							"name": "alice",
+							"balance": "10"
+						}
 					}
-				}
-			]
-			`))
-			actions, err := GetActions(reqBody)
+				`),
+			}
+			actions, err := GetActions(rawActions)
 			assert.Nil(t, err, "Must not fail")
 			assert.Len(
 				t,
@@ -32,26 +31,26 @@ func TestGetActions(t *testing.T) {
 				1,
 				"Validate parsed actions",
 			)
-
-			reqBody.Close()
 		})
 	t.Run("Test GetActions (With errors)",
 		func(t *testing.T) {
-			reqBody := io.NopCloser(strings.NewReader(`
-			[
-				{
-					"kind": "create_implicit_account",
-					"payload": {
-						"name": "alice",
-						"balance": "10"
+			rawActions := []json.RawMessage{
+				json.RawMessage(`
+					{
+						"kind": "create_implicit_account",
+						"payload": {
+							"name": "alice",
+							"balance": "10"
+						}
 					}
-				},
-				{
-					"kind": "THIS_ACTION_DOES_NOT_EXIST"
-				}
-			]
-			`))
-			actions, err := GetActions(reqBody)
+				`),
+				json.RawMessage(`
+					{
+						"kind": "THIS_ACTION_DOES_NOT_EXIST"
+					}
+				`),
+			}
+			actions, err := GetActions(rawActions)
 			assert.Equal(t, "Unexpected action kind (THIS_ACTION_DOES_NOT_EXIST).", err.Error(), "Must fail")
 			assert.ElementsMatch(
 				t,
@@ -59,8 +58,6 @@ func TestGetActions(t *testing.T) {
 				actions,
 				"Expects an empty slice",
 			)
-
-			reqBody.Close()
 		})
 }
 

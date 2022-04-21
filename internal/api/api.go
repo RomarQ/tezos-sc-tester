@@ -2,6 +2,7 @@ package api
 
 import (
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -16,6 +17,11 @@ import (
 
 type TestingAPI struct {
 	Config Config.Config
+}
+
+type Request struct {
+	Protocol string            `json:"protocol"`
+	Actions  []json.RawMessage `json:"actions"`
 }
 
 func InitTestingAPI(config Config.Config) TestingAPI {
@@ -34,7 +40,13 @@ func InitTestingAPI(config Config.Config) TestingAPI {
 // @Failure default {object} Error
 // @Router /testing [post]
 func (api *TestingAPI) RunTest(ctx echo.Context) error {
-	actions, err := Action.GetActions(ctx.Request().Body)
+	var request Request
+	err := json.NewDecoder(ctx.Request().Body).Decode(&request)
+	if err != nil {
+		return err
+	}
+
+	actions, err := Action.GetActions(request.Actions)
 	if err != nil {
 		switch err.(type) {
 		default:
@@ -61,7 +73,7 @@ func (api *TestingAPI) RunTest(ctx echo.Context) error {
 	}()
 
 	// Bootstrap mockup
-	err = mockup.Bootstrap()
+	err = mockup.Bootstrap(request.Protocol)
 	if err != nil {
 		Logger.Debug("Something went wrong: %s", err)
 		return Error.HttpError(http.StatusInternalServerError, "Could not bootstrap test environment.")

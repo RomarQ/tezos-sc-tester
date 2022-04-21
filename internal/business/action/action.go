@@ -3,7 +3,6 @@ package action
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 
 	"github.com/tidwall/gjson"
@@ -41,14 +40,7 @@ const (
 )
 
 // GetActions unmarshal test actions
-func GetActions(body io.ReadCloser) ([]IAction, error) {
-	rawActions := make([]json.RawMessage, 0)
-
-	err := json.NewDecoder(body).Decode(&rawActions)
-	if err != nil {
-		return nil, err
-	}
-
+func GetActions(rawActions []json.RawMessage) ([]IAction, error) {
 	actions := make([]IAction, 0)
 	for _, rawAction := range rawActions {
 		var action IAction
@@ -75,13 +67,13 @@ func GetActions(body io.ReadCloser) ([]IAction, error) {
 			}
 		}
 
-		if err = action.Unmarshal(); err != nil {
+		if err := action.Unmarshal(); err != nil {
 			return nil, Error.DetailedHttpError(http.StatusBadRequest, err.Error(), rawAction)
 		}
 		actions = append(actions, action)
 	}
 
-	return actions, err
+	return actions, nil
 }
 
 // ApplyActions executes each test action
