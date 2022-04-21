@@ -87,6 +87,14 @@ func (action OriginateContractAction) Run(mockup business.Mockup) (interface{}, 
 		return fmt.Sprintf("could not originate contract. %s", err), false
 	}
 
+	// Cache contract info
+	mockup.CacheAccountAddress(action.Name, address)
+	err = mockup.CacheContract(action.Name, action.Code)
+	if err != nil {
+		logger.Debug("[Task #%s] - %s", mockup.TaskID, err)
+		return err, false
+	}
+
 	return map[string]interface{}{
 		"address": address,
 	}, true

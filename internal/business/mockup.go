@@ -18,6 +18,7 @@ const cmd_tezos_client = "tezos-client"
 
 type (
 	TezosClientArgumentKind int8
+	ParsingMode             string
 	MichelsonFormat         string
 	TezosClientArgument     struct {
 		Kind       TezosClientArgumentKind
@@ -30,11 +31,15 @@ type (
 		Amount     Mutez
 		Parameter  string
 	}
+	ContractCache struct {
+		StorageType ast.Node
+	}
 	Mockup struct {
 		TaskID    string
 		Protocol  string
 		Config    config.Config
 		Addresses map[string]string
+		contracts map[string]ContractCache
 	}
 )
 
@@ -50,16 +55,21 @@ const (
 	Init
 	Arg
 	Entrypoint
-	//
+	UnparsingMode
+	// Parsing modes
+	Readable  ParsingMode = "Readable"
+	Optimized ParsingMode = "Optimized"
+	// Michelson Formats
 	Michelson MichelsonFormat = "michelson"
 	JSON      MichelsonFormat = "json"
 )
 
 func InitMockup(taskID string, protocol string, cfg config.Config) Mockup {
 	return Mockup{
-		TaskID:   taskID,
-		Protocol: protocol,
-		Config:   cfg,
+		TaskID:    taskID,
+		Protocol:  protocol,
+		Config:    cfg,
+		contracts: map[string]ContractCache{},
 	}
 }
 
@@ -86,13 +96,13 @@ func (m *Mockup) Bootstrap() error {
 			Parameters: []string{"create", "mockup"},
 		},
 		TezosClientArgument{
-			Kind:       ProtocolConstants,
-			Parameters: []string{fmt.Sprintf("%s/protocol-constants.json", m.Config.Tezos.BaseDirectory)},
-		},
-		TezosClientArgument{
 			Kind:       BootstrapAccounts,
 			Parameters: []string{fmt.Sprintf("%s/bootstrap-accounts.json", m.Config.Tezos.BaseDirectory)},
 		},
+		// TezosClientArgument{
+		// 	Kind:       ProtocolConstants,
+		// 	Parameters: []string{fmt.Sprintf("%s/protocol-constants.json", m.Config.Tezos.BaseDirectory)},
+		// },
 	)
 
 	_, err := m.runTezosClient(m.getTezosClientPath(), arguments)
@@ -347,9 +357,6 @@ func (m *Mockup) Originate(sender string, contractName string, amount Mutez, cod
 		return "", fmt.Errorf("Could not extract the contract address from origination output.")
 	}
 
-	// Cache contract address
-	m.SetAddress(contractName, match[1])
-
 	return match[1], nil
 }
 
@@ -375,6 +382,10 @@ func (m Mockup) GetContractStorage(contractName string) (ast.Node, error) {
 				"get", "contract", "storage", "for", contractName,
 			},
 		},
+		TezosClientArgument{
+			Kind:       UnparsingMode,
+			Parameters: []string{string(Readable)},
+		},
 	)
 
 	output, err := m.runTezosClient(m.getTezosClientPath(), arguments)
@@ -390,7 +401,41 @@ func (m Mockup) GetContractStorage(contractName string) (ast.Node, error) {
 	return ast, nil
 }
 
-// Convert script format between "michelson" and "json"
+// Checks if address exists
+func (m Mockup) ContainsAddress(name string) bool {
+	return m.Addresses[name] != ""
+}
+
+// CacheAddress caches the address of a contract by name
+func (m Mockup) CacheAccountAddress(name string, address string) {
+	m.Addresses[name] = address
+}
+
+// CacheContract caches contract information
+func (m Mockup) CacheContract(name string, code ast.Node) error {
+	switch seq := code.(type) {
+	case ast.Sequence:
+		for _, node := range seq.Elements {
+			switch prim := node.(type) {
+			case ast.Prim:
+				if prim.Prim == "storage" {
+					m.contracts[name] = ContractCache{
+						StorageType: prim.Arguments[0],
+					}
+				}
+				return nil
+			}
+		}
+	}
+	return fmt.Errorf("could not cache contract. michelson is invalid.")
+}
+
+// GetCachedContract
+func (m Mockup) GetCachedContract(name string) ContractCache {
+	return m.contracts[name]
+}
+
+// ConvertScript converts script format between "michelson" and "json"
 func (m Mockup) ConvertScript(script string, from MichelsonFormat, to MichelsonFormat) (string, error) {
 	arguments := composeArguments(
 		TezosClientArgument{
@@ -414,16 +459,6 @@ func (m Mockup) ConvertScript(script string, from MichelsonFormat, to MichelsonF
 	)
 
 	return m.runTezosClient(m.getTezosClientPath(), arguments)
-}
-
-// Checks if address exists
-func (m Mockup) ContainsAddress(name string) bool {
-	return m.Addresses[name] != ""
-}
-
-// Set address
-func (m Mockup) SetAddress(name string, address string) {
-	m.Addresses[name] = address
 }
 
 // ConvertData converts data format between "michelson" and "json"
@@ -450,6 +485,46 @@ func (m Mockup) ConvertData(data string, from MichelsonFormat, to MichelsonForma
 	)
 
 	return m.runTezosClient(m.getTezosClientPath(), arguments)
+}
+
+// NormalizeData normalize a data expression against a gicen type
+func (m Mockup) NormalizeData(data string, dataType string, mode ParsingMode) (ast.Node, error) {
+	arguments := composeArguments(
+		TezosClientArgument{
+			Kind:       Mode,
+			Parameters: []string{"mockup"},
+		},
+		TezosClientArgument{
+			Kind:       BaseDirectory,
+			Parameters: []string{m.getTaskDirectory()},
+		},
+		TezosClientArgument{
+			Kind:       Protocol,
+			Parameters: []string{m.getProtocol()},
+		},
+		TezosClientArgument{
+			Kind: COMMAND,
+			Parameters: []string{
+				"normalize", "data", data, "of", "type", dataType,
+			},
+		},
+		TezosClientArgument{
+			Kind:       UnparsingMode,
+			Parameters: []string{string(mode)},
+		},
+	)
+
+	output, err := m.runTezosClient(m.getTezosClientPath(), arguments)
+	if err != nil {
+		return nil, fmt.Errorf("could not normalize data %s against type %s. %s", data, dataType, err)
+	}
+
+	ast, err := michelson.ParseMicheline(output)
+	if err != nil {
+		return nil, fmt.Errorf("could parse normalized data %s. %s", output, err)
+	}
+
+	return ast, nil
 }
 
 // runTezosClient executes a "tezos-client" command
@@ -479,6 +554,7 @@ func (m Mockup) runTezosClient(command string, args []string) (string, error) {
 	return output, nil
 }
 
+// fetchKnownAddresses gets all accounts known by 'tezos-client"
 func (m Mockup) fetchKnownAddresses() map[string]string {
 	arguments := composeArguments(
 		TezosClientArgument{
@@ -559,6 +635,8 @@ func composeArguments(args ...TezosClientArgument) []string {
 			arguments = append(arguments, "--arg")
 		case Entrypoint:
 			arguments = append(arguments, "--entrypoint")
+		case UnparsingMode:
+			arguments = append(arguments, "--unparsing-mode")
 		}
 		arguments = append(arguments, argument.Parameters...)
 	}

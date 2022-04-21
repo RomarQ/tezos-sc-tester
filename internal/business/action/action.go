@@ -114,12 +114,16 @@ func buildSuccessResult(result interface{}, action IAction) ActionResult {
 	}
 }
 
-func buildFailureResult(details interface{}, action IAction) ActionResult {
+func buildFailureResult(result interface{}, action IAction) ActionResult {
+	switch t := result.(type) {
+	case string:
+		result = map[string]interface{}{
+			"details": t,
+		}
+	}
 	return ActionResult{
 		Status: Failure,
 		Action: action.Marshal(),
-		Result: map[string]interface{}{
-			"details": details,
-		},
+		Result: result,
 	}
 }

@@ -98,8 +98,8 @@ func (action CreateImplicitAccountAction) Run(mockup business.Mockup) (interface
 		return err, false
 	}
 
-	// Save new address
-	mockup.SetAddress(action.Name, address)
+	// Cache contract address
+	mockup.CacheAccountAddress(action.Name, address)
 
 	return map[string]interface{}{
 		"address": address,

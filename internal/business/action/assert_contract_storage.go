@@ -65,7 +65,6 @@ func (action AssertContractStorageAction) Run(mockup business.Mockup) (interface
 		return fmt.Errorf("could not fetch storage for contract (%s).", action.ContractName), false
 	}
 
-	actualStorageMicheline := micheline.Print(storage, "")
 	actualStorageJSON, err := MichelsonJSON.Print(storage, "", "  ")
 	if err != nil {
 		err = fmt.Errorf("failed to print actual contract storage to JSON. %s", err)
@@ -73,8 +72,11 @@ func (action AssertContractStorageAction) Run(mockup business.Mockup) (interface
 		return err, false
 	}
 
+	// Get the storage type (the expected data needs to be normalize against the type)
+	storageTypeMicheline := micheline.Print(mockup.GetCachedContract(action.ContractName).StorageType, "")
+
 	expectedStorageMicheline := expandPlaceholders(mockup, micheline.Print(action.Storage, ""))
-	expectedStorageAST, err := michelson.ParseMicheline(expectedStorageMicheline)
+	expectedStorageAST, err := mockup.NormalizeData(expectedStorageMicheline, storageTypeMicheline, business.Readable)
 	if err != nil {
 		err = fmt.Errorf("failed to parse 'micheline'. %s", err)
 		logger.Debug("[%s] %s", AssertContractStorage, err)
@@ -87,7 +89,7 @@ func (action AssertContractStorageAction) Run(mockup business.Mockup) (interface
 		return err, false
 	}
 
-	if expectedStorageMicheline != actualStorageMicheline {
+	if expectedStorageAST != storage {
 		return map[string]json.RawMessage{
 			"expected": expectedStorageJSON,
 			"actual":   actualStorageJSON,
