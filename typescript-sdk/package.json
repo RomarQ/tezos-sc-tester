@@ -1,6 +1,6 @@
 {
     "name": "@tezwell/tezos-testing-sdk",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "license": "MIT",
     "author": {
         "name": "Rodrigo Quelhas",

@@ -17,10 +17,9 @@ export type IAction =
     | ICallContractAction
     | IAssertAccountBalanceAction;
 
-export interface IActionResult<K extends ActionKind> {
+export interface IActionResult {
     status: ActionResultStatus;
-    kind: K;
-    action: Extract<IAction, { kind: K }>['payload'];
+    action: IAction;
     result: Record<string, unknown>;
 }
 
