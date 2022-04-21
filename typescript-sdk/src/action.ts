@@ -4,6 +4,7 @@ export enum ActionKind {
     OriginateContract = 'originate_contract',
     CallContract = 'call_contract',
     AssertAccountBalance = 'assert_account_balance',
+    AssertContractStorage = 'assert_contract_storage',
 }
 // Action result status
 export enum ActionResultStatus {
@@ -15,7 +16,8 @@ export type IAction =
     | ICreateImplicitAccountAction
     | IOriginateContractAction
     | ICallContractAction
-    | IAssertAccountBalanceAction;
+    | IAssertAccountBalanceAction
+    | IAssertContractStorageAction;
 
 export interface IActionResult {
     status: ActionResultStatus;
@@ -70,4 +72,15 @@ export interface IAssertAccountBalancePayload {
 export interface IAssertAccountBalanceAction {
     kind: ActionKind.AssertAccountBalance;
     payload: IAssertAccountBalancePayload;
+}
+
+// assert_contract_storage
+
+export interface IAssertContractStoragePayload {
+    contract_name: string;
+    storage: Record<string, unknown> | Record<string, unknown>[];
+}
+export interface IAssertContractStorageAction {
+    kind: ActionKind.AssertContractStorage;
+    payload: IAssertContractStoragePayload;
 }
