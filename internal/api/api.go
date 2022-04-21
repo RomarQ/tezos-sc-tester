@@ -19,7 +19,7 @@ type TestingAPI struct {
 	Config Config.Config
 }
 
-type Request struct {
+type testSuiteRequest struct {
 	Protocol string            `json:"protocol"`
 	Actions  []json.RawMessage `json:"actions"`
 }
@@ -40,10 +40,9 @@ func InitTestingAPI(config Config.Config) TestingAPI {
 // @Failure default {object} Error
 // @Router /testing [post]
 func (api *TestingAPI) RunTest(ctx echo.Context) error {
-	var request Request
-	err := json.NewDecoder(ctx.Request().Body).Decode(&request)
-	if err != nil {
-		return err
+	var request testSuiteRequest
+	if err := json.NewDecoder(ctx.Request().Body).Decode(&request); err != nil {
+		return Error.HttpError(http.StatusBadRequest, "request body is invalid.")
 	}
 
 	actions, err := Action.GetActions(request.Actions)
@@ -62,7 +61,7 @@ func (api *TestingAPI) RunTest(ctx echo.Context) error {
 	}
 
 	taskID := fmt.Sprintf("task_%d", prime)
-	mockup := Mockup.InitMockup(taskID, api.Config)
+	mockup := Mockup.InitMockup(taskID, request.Protocol, api.Config)
 	defer func() {
 		err := recover()
 		if err != nil {
@@ -73,7 +72,7 @@ func (api *TestingAPI) RunTest(ctx echo.Context) error {
 	}()
 
 	// Bootstrap mockup
-	err = mockup.Bootstrap(request.Protocol)
+	err = mockup.Bootstrap()
 	if err != nil {
 		Logger.Debug("Something went wrong: %s", err)
 		return Error.HttpError(http.StatusInternalServerError, "Could not bootstrap test environment.")

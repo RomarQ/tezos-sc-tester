@@ -32,6 +32,7 @@ type (
 	}
 	Mockup struct {
 		TaskID    string
+		Protocol  string
 		Config    config.Config
 		Addresses map[string]string
 	}
@@ -54,28 +55,18 @@ const (
 	JSON      MichelsonFormat = "json"
 )
 
-func InitMockup(taskID string, cfg config.Config) Mockup {
+func InitMockup(taskID string, protocol string, cfg config.Config) Mockup {
 	return Mockup{
-		TaskID: taskID,
-		Config: cfg,
-		Addresses: map[string]string{
-			"bootstrap1": "tz1",
-			"bootstrap2": "tz1",
-			"bootstrap3": "tz1",
-			"bootstrap4": "tz1",
-			"bootstrap5": "tz1",
-		},
+		TaskID:   taskID,
+		Protocol: protocol,
+		Config:   cfg,
 	}
 }
 
 // Bootstrap a mockup environment for the task
-func (m Mockup) Bootstrap(protocol string) error {
+func (m *Mockup) Bootstrap() error {
 	temporaryDirectory := m.getTaskDirectory()
 	logger.Debug("[Task #%s] - Creating task directory (%s).", m.TaskID, temporaryDirectory)
-
-	if protocol == "" {
-		protocol = m.Config.Tezos.DefaultProtocol
-	}
 
 	arguments := composeArguments(
 		TezosClientArgument{
@@ -88,7 +79,7 @@ func (m Mockup) Bootstrap(protocol string) error {
 		},
 		TezosClientArgument{
 			Kind:       Protocol,
-			Parameters: []string{protocol},
+			Parameters: []string{m.getProtocol()},
 		},
 		TezosClientArgument{
 			Kind:       COMMAND,
@@ -105,7 +96,14 @@ func (m Mockup) Bootstrap(protocol string) error {
 	)
 
 	_, err := m.runTezosClient(m.getTezosClientPath(), arguments)
-	return err
+	if err != nil {
+		return fmt.Errorf("could not bootstrap mockup. %s", err)
+	}
+
+	// Populate the address cache map
+	m.Addresses = m.fetchKnownAddresses()
+
+	return nil
 }
 
 // Clear task artifacts
@@ -131,7 +129,7 @@ func (m Mockup) GenerateWallet(walletName string) error {
 		},
 		TezosClientArgument{
 			Kind:       Protocol,
-			Parameters: []string{m.Config.Tezos.DefaultProtocol},
+			Parameters: []string{m.getProtocol()},
 		},
 		TezosClientArgument{
 			Kind:       COMMAND,
@@ -157,7 +155,7 @@ func (m Mockup) ImportSecret(privateKey string, walletName string) error {
 		},
 		TezosClientArgument{
 			Kind:       Protocol,
-			Parameters: []string{m.Config.Tezos.DefaultProtocol},
+			Parameters: []string{m.getProtocol()},
 		},
 		TezosClientArgument{
 			Kind:       COMMAND,
@@ -185,7 +183,7 @@ func (m Mockup) Transfer(arg CallContractArgument) error {
 		},
 		TezosClientArgument{
 			Kind:       Protocol,
-			Parameters: []string{m.Config.Tezos.DefaultProtocol},
+			Parameters: []string{m.getProtocol()},
 		},
 		TezosClientArgument{
 			Kind:       COMMAND,
@@ -243,7 +241,7 @@ func (m Mockup) RevealWallet(walletName string, revealFee Mutez) error {
 		},
 		TezosClientArgument{
 			Kind:       Protocol,
-			Parameters: []string{m.Config.Tezos.DefaultProtocol},
+			Parameters: []string{m.getProtocol()},
 		},
 		TezosClientArgument{
 			Kind:       COMMAND,
@@ -273,7 +271,7 @@ func (m Mockup) GetBalance(name string) Mutez {
 		},
 		TezosClientArgument{
 			Kind:       Protocol,
-			Parameters: []string{m.Config.Tezos.DefaultProtocol},
+			Parameters: []string{m.getProtocol()},
 		},
 		TezosClientArgument{
 			Kind:       COMMAND,
@@ -316,7 +314,7 @@ func (m *Mockup) Originate(sender string, contractName string, amount Mutez, cod
 		},
 		TezosClientArgument{
 			Kind:       Protocol,
-			Parameters: []string{m.Config.Tezos.DefaultProtocol},
+			Parameters: []string{m.getProtocol()},
 		},
 		TezosClientArgument{
 			Kind: COMMAND,
@@ -369,7 +367,7 @@ func (m Mockup) GetContractStorage(contractName string) (ast.Node, error) {
 		},
 		TezosClientArgument{
 			Kind:       Protocol,
-			Parameters: []string{m.Config.Tezos.DefaultProtocol},
+			Parameters: []string{m.getProtocol()},
 		},
 		TezosClientArgument{
 			Kind: COMMAND,
@@ -405,7 +403,7 @@ func (m Mockup) ConvertScript(script string, from MichelsonFormat, to MichelsonF
 		},
 		TezosClientArgument{
 			Kind:       Protocol,
-			Parameters: []string{m.Config.Tezos.DefaultProtocol},
+			Parameters: []string{m.getProtocol()},
 		},
 		TezosClientArgument{
 			Kind: COMMAND,
@@ -428,7 +426,7 @@ func (m Mockup) SetAddress(name string, address string) {
 	m.Addresses[name] = address
 }
 
-// Convert data format between "michelson" and "json"
+// ConvertData converts data format between "michelson" and "json"
 func (m Mockup) ConvertData(data string, from MichelsonFormat, to MichelsonFormat) (string, error) {
 	arguments := composeArguments(
 		TezosClientArgument{
@@ -441,7 +439,7 @@ func (m Mockup) ConvertData(data string, from MichelsonFormat, to MichelsonForma
 		},
 		TezosClientArgument{
 			Kind:       Protocol,
-			Parameters: []string{m.Config.Tezos.DefaultProtocol},
+			Parameters: []string{m.getProtocol()},
 		},
 		TezosClientArgument{
 			Kind: COMMAND,
@@ -454,7 +452,7 @@ func (m Mockup) ConvertData(data string, from MichelsonFormat, to MichelsonForma
 	return m.runTezosClient(m.getTezosClientPath(), arguments)
 }
 
-// Execute a "tezos-client" command
+// runTezosClient executes a "tezos-client" command
 func (m Mockup) runTezosClient(command string, args []string) (string, error) {
 	cmd := exec.Command(command, args...)
 
@@ -468,6 +466,7 @@ func (m Mockup) runTezosClient(command string, args []string) (string, error) {
 			msg := errBuffer.String()
 			logger.Error("Got the following error:\n\n%s\nwhen executing command: %s.", msg, cmd.Args)
 			err = fmt.Errorf(msg)
+			return "", err
 		}
 		return "", err
 	}
@@ -480,14 +479,62 @@ func (m Mockup) runTezosClient(command string, args []string) (string, error) {
 	return output, nil
 }
 
+func (m Mockup) fetchKnownAddresses() map[string]string {
+	arguments := composeArguments(
+		TezosClientArgument{
+			Kind:       Mode,
+			Parameters: []string{"mockup"},
+		},
+		TezosClientArgument{
+			Kind:       BaseDirectory,
+			Parameters: []string{m.getTaskDirectory()},
+		},
+		TezosClientArgument{
+			Kind:       Protocol,
+			Parameters: []string{m.getProtocol()},
+		},
+		TezosClientArgument{
+			Kind:       COMMAND,
+			Parameters: []string{"list", "known", "addresses"},
+		},
+	)
+
+	output, _ := m.runTezosClient(m.getTezosClientPath(), arguments)
+
+	// Extract addresses
+	pattern := regexp.MustCompile(`(\w+):\s(\w+)\s`)
+	match := pattern.FindAllStringSubmatch(output, -1)
+
+	addresses := map[string]string{}
+	for _, m := range match {
+		// m[1] = name
+		// m[2] = address
+		addresses[m[1]] = m[2]
+	}
+
+	return addresses
+}
+
+// getTaskDirectory gives the path to the temporary folder that
+// will be used to store all artifacts produced by the mockup
 func (m Mockup) getTaskDirectory() string {
 	return fmt.Sprintf("%s/_tmp/%s", m.Config.Tezos.BaseDirectory, m.TaskID)
 }
 
+// getTezosClientPath gives the path to the 'tezos-client' binary
 func (m Mockup) getTezosClientPath() string {
 	return fmt.Sprintf("%s/%s", m.Config.Tezos.BaseDirectory, cmd_tezos_client)
 }
 
+// getProtocol gives the protocol being used in the mockup
+func (m Mockup) getProtocol() string {
+	if m.Protocol == "" {
+		return m.Config.Tezos.DefaultProtocol
+	}
+	return m.Protocol
+}
+
+// composeArguments prepares the arguments for using with 'tezos-client'
 func composeArguments(args ...TezosClientArgument) []string {
 	arguments := make([]string, 0)
 	for _, argument := range args {
