@@ -152,8 +152,8 @@ func (m Mockup) UpdateChainID(chainID string) error {
 	return nil
 }
 
-// UpdateBlockLevel updates the level of the head block in the mockup context
-func (m Mockup) UpdateBlockLevel(level int32) error {
+// UpdateHeadBlockLevel updates the level of the head block in the mockup context
+func (m Mockup) UpdateHeadBlockLevel(level int32) error {
 	logger.Debug("[Task #%s] - Updating block level to (%s).", m.TaskID, level)
 	contextPath := fmt.Sprintf("%s/mockup/context.json", m.getTaskDirectory())
 

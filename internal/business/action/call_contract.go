@@ -8,6 +8,7 @@ import (
 	"github.com/romarq/visualtez-testing/internal/business"
 	"github.com/romarq/visualtez-testing/internal/business/michelson"
 	"github.com/romarq/visualtez-testing/internal/business/michelson/ast"
+	MichelsonJSON "github.com/romarq/visualtez-testing/internal/business/michelson/json"
 	"github.com/romarq/visualtez-testing/internal/business/michelson/micheline"
 	"github.com/romarq/visualtez-testing/internal/logger"
 	"github.com/romarq/visualtez-testing/internal/utils"
@@ -20,6 +21,7 @@ type CallContractAction struct {
 		Payload struct {
 			Recipient  string          `json:"recipient"`
 			Sender     string          `json:"sender"`
+			Level      int32           `json:"level"`
 			Entrypoint string          `json:"entrypoint"`
 			Amount     string          `json:"amount"`
 			Parameter  json.RawMessage `json:"parameter"`
@@ -27,6 +29,7 @@ type CallContractAction struct {
 	}
 	Recipient  string
 	Sender     string
+	Level      int32
 	Entrypoint string
 	Amount     business.Mutez
 	Parameter  ast.Node
@@ -46,6 +49,11 @@ func (action *CallContractAction) Unmarshal() error {
 
 	// "recipient" field
 	action.Recipient = action.json.Payload.Recipient
+	// "level" field
+	action.Level = action.json.Payload.Level
+	if action.Level == 0 {
+		action.Level = 1
+	}
 	// "sender" field
 	action.Sender = action.json.Payload.Sender
 	// "entrypoint" field
@@ -74,7 +82,14 @@ func (a CallContractAction) Marshal() json.RawMessage {
 
 // Perform the action
 func (action CallContractAction) Run(mockup business.Mockup) (interface{}, bool) {
-	err := mockup.Transfer(business.CallContractArgument{
+	// Update the block level one block in the past
+	// The transfer operation will increment 1 to the block level
+	err := mockup.UpdateHeadBlockLevel(action.Level - 1)
+	if err != nil {
+		return err, false
+	}
+
+	err = mockup.Transfer(business.CallContractArgument{
 		Recipient:  action.Recipient,
 		Source:     action.Sender,
 		Entrypoint: action.Entrypoint,
@@ -82,10 +97,26 @@ func (action CallContractAction) Run(mockup business.Mockup) (interface{}, bool)
 		Parameter:  expandPlaceholders(mockup, micheline.Print(action.Parameter, "")),
 	})
 	if err != nil {
-		return err.Error(), false
+		return err, false
 	}
 
-	return map[string]interface{}{}, true
+	storage, err := mockup.GetContractStorage(action.Recipient)
+	if err != nil {
+		err = fmt.Errorf("could not fetch storage for contract (%s). %s", action.Recipient, err)
+		logger.Debug("[%s] %s", CallContract, err)
+		return err, false
+	}
+
+	actualStorageJSON, err := MichelsonJSON.Print(storage, "", "  ")
+	if err != nil {
+		err = fmt.Errorf("failed to print actual contract storage to JSON. %s", err)
+		logger.Debug("[%s] %s", AssertContractStorage, err)
+		return err, false
+	}
+
+	return map[string]interface{}{
+		"storage": actualStorageJSON,
+	}, true
 }
 
 func (action CallContractAction) validate() error {
@@ -107,6 +138,10 @@ func (action CallContractAction) validate() error {
 	}
 	if action.json.Payload.Parameter == nil {
 		missingFields = append(missingFields, "parameter")
+	}
+
+	if action.Level > 99999999 {
+		return fmt.Errorf("The block level cannot be higher than 99999999.")
 	}
 
 	if len(missingFields) > 0 {

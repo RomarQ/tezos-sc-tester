@@ -6,8 +6,8 @@ export enum ActionKind {
     AssertAccountBalance = 'assert_account_balance',
     AssertContractStorage = 'assert_contract_storage',
     ModifyChainID = 'modify_chain_id',
-    ModifyBlockLevel = 'modify_block_level',
 }
+
 // Action result status
 export enum ActionResultStatus {
     Success = 'success',
@@ -20,8 +20,7 @@ export type IAction =
     | ICallContractAction
     | IAssertAccountBalanceAction
     | IAssertContractStorageAction
-    | IModifyChainIDAction
-    | IModifyBlockLevelAction;
+    | IModifyChainIDAction;
 
 export interface IActionResult {
     status: ActionResultStatus;
@@ -59,6 +58,7 @@ export interface ICallContractPayload {
     recipient: string;
     sender: string;
     amount: string;
+    level: number;
     entrypoint: string;
     parameter: Record<string, unknown> | Record<string, unknown>[];
 }
@@ -98,15 +98,4 @@ export interface IModifyChainIDPayload {
 export interface IModifyChainIDAction {
     kind: ActionKind.ModifyChainID;
     payload: IModifyChainIDPayload;
-}
-
-// modify_block_level
-
-export interface IModifyBlockLevelPayload {
-    level: number;
-}
-
-export interface IModifyBlockLevelAction {
-    kind: ActionKind.ModifyBlockLevel;
-    payload: IModifyBlockLevelPayload;
 }

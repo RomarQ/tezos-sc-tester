@@ -1,5 +1,4 @@
 {
-  "preserved_cycles": 2,
   "blocks_per_cycle": 999999999,
   "blocks_per_commitment": 999999999,
   "blocks_per_stake_snapshot": 999999999,
