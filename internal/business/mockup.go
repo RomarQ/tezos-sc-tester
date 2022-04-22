@@ -12,6 +12,7 @@ import (
 	"github.com/romarq/visualtez-testing/internal/business/michelson/ast"
 	"github.com/romarq/visualtez-testing/internal/config"
 	"github.com/romarq/visualtez-testing/internal/logger"
+	"github.com/tidwall/sjson"
 )
 
 const cmd_tezos_client = "tezos-client"
@@ -99,10 +100,10 @@ func (m *Mockup) Bootstrap() error {
 			Kind:       BootstrapAccounts,
 			Parameters: []string{fmt.Sprintf("%s/bootstrap-accounts.json", m.Config.Tezos.BaseDirectory)},
 		},
-		// TezosClientArgument{
-		// 	Kind:       ProtocolConstants,
-		// 	Parameters: []string{fmt.Sprintf("%s/protocol-constants.json", m.Config.Tezos.BaseDirectory)},
-		// },
+		TezosClientArgument{
+			Kind:       ProtocolConstants,
+			Parameters: []string{fmt.Sprintf("%s/protocol-constants.json", m.Config.Tezos.BaseDirectory)},
+		},
 	)
 
 	_, err := m.runTezosClient(m.getTezosClientPath(), arguments)
@@ -122,6 +123,33 @@ func (m Mockup) Teardown() error {
 	logger.Debug("[Task #%s] - Deleting task directory (%s).", m.TaskID, temporaryDirectory)
 
 	return os.RemoveAll(temporaryDirectory)
+}
+
+// UpdateChainID
+func (m Mockup) UpdateChainID(chainID string) error {
+	logger.Debug("[Task #%s] - Updating chain_id to (%s).", m.TaskID, chainID)
+	contextPath := fmt.Sprintf("%s/mockup/context.json", m.getTaskDirectory())
+
+	errorMsg := fmt.Errorf("could not modify chain_id.")
+
+	bytes, err := os.ReadFile(contextPath)
+	if err != nil {
+		logger.Debug("could not open %s: %s", contextPath, err)
+		return errorMsg
+	}
+	bytes, err = sjson.SetBytes(bytes, "chain_id", chainID)
+	if err != nil {
+		logger.Debug(`could not modify "chain_id" field. %s`, err)
+		return errorMsg
+	}
+
+	err = os.WriteFile(contextPath, bytes, 644)
+	if err != nil {
+		logger.Debug("could not write to %s: %s", contextPath, err)
+		return errorMsg
+	}
+
+	return nil
 }
 
 // Generate Wallet

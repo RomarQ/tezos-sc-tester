@@ -7,7 +7,8 @@ require (
 	github.com/labstack/echo/v4 v4.6.3
 	github.com/swaggo/echo-swagger v1.3.0
 	github.com/swaggo/swag v1.7.9
-	github.com/tidwall/gjson v1.14.0
+	github.com/tidwall/gjson v1.14.1
+	github.com/tidwall/sjson v1.2.4
 	go.uber.org/zap v1.21.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v2 v2.4.0

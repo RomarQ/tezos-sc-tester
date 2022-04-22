@@ -61,8 +61,9 @@ func (action AssertContractStorageAction) Marshal() json.RawMessage {
 func (action AssertContractStorageAction) Run(mockup business.Mockup) (interface{}, bool) {
 	storage, err := mockup.GetContractStorage(action.ContractName)
 	if err != nil {
+		err = fmt.Errorf("could not fetch storage for contract (%s). %s", action.ContractName, err)
 		logger.Debug("[%s] %s", AssertContractStorage, err)
-		return fmt.Errorf("could not fetch storage for contract (%s).", action.ContractName), false
+		return err, false
 	}
 
 	actualStorageJSON, err := MichelsonJSON.Print(storage, "", "  ")

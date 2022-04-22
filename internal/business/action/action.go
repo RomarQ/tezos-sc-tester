@@ -69,6 +69,10 @@ func GetActions(rawActions []json.RawMessage) ([]IAction, error) {
 			action = &CreateImplicitAccountAction{
 				raw: rawAction,
 			}
+		case string(ModifyChainID):
+			action = &ModifyChainIdAction{
+				raw: rawAction,
+			}
 		}
 
 		if err := action.Unmarshal(); err != nil {
@@ -87,10 +91,9 @@ func ApplyActions(mockup business.Mockup, actions []IAction) []ActionResult {
 	for _, action := range actions {
 		result, ok := action.Run(mockup)
 		if ok {
-			responses = append(responses, buildSuccessResult(result, action))
+			responses = append(responses, buildResult(Success, result, action))
 		} else {
-			responses = append(responses, buildFailureResult(result, action))
-
+			responses = append(responses, buildResult(Failure, result, action))
 		}
 	}
 
@@ -106,23 +109,15 @@ func expandPlaceholders(mockup business.Mockup, str string) string {
 	return string(b)
 }
 
-func buildSuccessResult(result interface{}, action IAction) ActionResult {
-	return ActionResult{
-		Status: Success,
-		Action: action.Marshal(),
-		Result: result,
-	}
-}
-
-func buildFailureResult(result interface{}, action IAction) ActionResult {
-	switch t := result.(type) {
-	case string:
+func buildResult(status ActionStatus, result interface{}, action IAction) ActionResult {
+	switch result.(type) {
+	case string, error:
 		result = map[string]interface{}{
-			"details": t,
+			"details": fmt.Sprint(result),
 		}
 	}
 	return ActionResult{
-		Status: Failure,
+		Status: status,
 		Action: action.Marshal(),
 		Result: result,
 	}

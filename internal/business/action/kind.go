@@ -8,4 +8,5 @@ const (
 	CallContract          ActionKind = "call_contract"
 	AssertAccountBalance  ActionKind = "assert_account_balance"
 	AssertContractStorage ActionKind = "assert_contract_storage"
+	ModifyChainID         ActionKind = "modify_chain_id"
 )
