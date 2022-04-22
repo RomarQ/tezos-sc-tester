@@ -74,7 +74,7 @@ func InitMockup(taskID string, protocol string, cfg config.Config) Mockup {
 	}
 }
 
-// Bootstrap a mockup environment for the task
+// Bootstrap bootstraps a mockup environment for the task
 func (m *Mockup) Bootstrap() error {
 	temporaryDirectory := m.getTaskDirectory()
 	logger.Debug("[Task #%s] - Creating task directory (%s).", m.TaskID, temporaryDirectory)
@@ -117,7 +117,7 @@ func (m *Mockup) Bootstrap() error {
 	return nil
 }
 
-// Clear task artifacts
+// Teardown clears task artifacts
 func (m Mockup) Teardown() error {
 	temporaryDirectory := m.getTaskDirectory()
 	logger.Debug("[Task #%s] - Deleting task directory (%s).", m.TaskID, temporaryDirectory)
@@ -125,7 +125,7 @@ func (m Mockup) Teardown() error {
 	return os.RemoveAll(temporaryDirectory)
 }
 
-// UpdateChainID
+// UpdateChainID updates the chain identifier in the mockup context
 func (m Mockup) UpdateChainID(chainID string) error {
 	logger.Debug("[Task #%s] - Updating chain_id to (%s).", m.TaskID, chainID)
 	contextPath := fmt.Sprintf("%s/mockup/context.json", m.getTaskDirectory())
@@ -152,7 +152,34 @@ func (m Mockup) UpdateChainID(chainID string) error {
 	return nil
 }
 
-// Generate Wallet
+// UpdateBlockLevel updates the level of the head block in the mockup context
+func (m Mockup) UpdateBlockLevel(level int32) error {
+	logger.Debug("[Task #%s] - Updating block level to (%s).", m.TaskID, level)
+	contextPath := fmt.Sprintf("%s/mockup/context.json", m.getTaskDirectory())
+
+	errorMsg := fmt.Errorf("could not modify block level.")
+
+	bytes, err := os.ReadFile(contextPath)
+	if err != nil {
+		logger.Debug("could not open %s: %s", contextPath, err)
+		return errorMsg
+	}
+	bytes, err = sjson.SetBytes(bytes, "context.shell_header.level", level)
+	if err != nil {
+		logger.Debug(`could not modify "context.shell_header.level" field. %s`, err)
+		return errorMsg
+	}
+
+	err = os.WriteFile(contextPath, bytes, 644)
+	if err != nil {
+		logger.Debug("could not write to %s: %s", contextPath, err)
+		return errorMsg
+	}
+
+	return nil
+}
+
+// GenerateWallet generates a new wallet (uses ed25519 curve)
 func (m Mockup) GenerateWallet(walletName string) error {
 	logger.Debug("[Task #%s] - Generating wallet (%s).", m.TaskID, walletName)
 

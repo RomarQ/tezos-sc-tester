@@ -9,4 +9,5 @@ const (
 	AssertAccountBalance  ActionKind = "assert_account_balance"
 	AssertContractStorage ActionKind = "assert_contract_storage"
 	ModifyChainID         ActionKind = "modify_chain_id"
+	ModifyBlockLevel      ActionKind = "modify_block_level"
 )

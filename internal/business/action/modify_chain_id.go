@@ -59,8 +59,8 @@ func (action ModifyChainIdAction) validate() error {
 	missingFields := make([]string, 0)
 	if action.json.Payload.ChainID == "" {
 		missingFields = append(missingFields, "chain_id")
-	} else if err := utils.ValidateString(STRING_IDENTIFIER_REGEX, action.json.Payload.ChainID); err != nil {
-		return err
+	} else if !utils.ValidateChainID(action.json.Payload.ChainID) {
+		return fmt.Errorf(`"chain_id" is invalid: %s`, action.json.Payload.ChainID)
 	}
 
 	if len(missingFields) > 0 {

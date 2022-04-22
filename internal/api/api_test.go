@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http/httptest"
+	"os"
+	"path"
 	"testing"
 
 	"github.com/labstack/echo/v4"
@@ -14,6 +16,13 @@ import (
 	"github.com/romarq/visualtez-testing/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
+
+// Utility for saving test snapshots
+func saveSnapshot(fileName string, bytes []byte) {
+	wd, _ := os.Getwd()
+	filePath := path.Join(wd, "__test_data__", fileName)
+	os.WriteFile(filePath, bytes, 0644)
+}
 
 func TestRunTest(t *testing.T) {
 	const TESTING_URL = "/testing"
@@ -30,6 +39,32 @@ func TestRunTest(t *testing.T) {
 		},
 	})
 	logger.SetupLogger(api.Config.Log.Location, api.Config.Log.Level)
+
+	t.Run("Perform a valid request and validate the response", func(t *testing.T) {
+		request, err := getTestData("valid_request.json")
+		assert.Nil(t, err, "Must not fail")
+
+		e := echo.New()
+		req := httptest.NewRequest(echo.POST, TESTING_URL, bytes.NewReader(request))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+
+		ctx := e.NewContext(req, rec)
+
+		err = api.RunTest(ctx)
+		assert.Nil(t, err, "Must not fail")
+		assert.Equal(t, rec.Code, 200)
+
+		var actionResponses []action.ActionResult
+		err = json.Unmarshal(rec.Body.Bytes(), &actionResponses)
+		assert.Nil(t, err, "Must not fail")
+
+		assert.Equal(t, len(actionResponses), 7, "Expects 7 action results")
+
+		for _, response := range actionResponses {
+			assert.Equal(t, response.Status, action.Success, "Expects all actions to be sucessful")
+		}
+	})
 
 	t.Run("Create Implicit Account",
 		func(t *testing.T) {
@@ -147,4 +182,10 @@ func TestRunTest(t *testing.T) {
 			assert.Equal(t, utils.PrettifyJSON(actionResult.Action), utils.PrettifyJSON(OriginateContractAction), "Validate action request")
 			assert.Contains(t, fmt.Sprintf("%v", actionResult.Result), "KT1", actionResult.Result)
 		})
+}
+
+func getTestData(fileName string) ([]byte, error) {
+	wd, _ := os.Getwd()
+	contract_file_path := path.Join(wd, "__test_data__", fileName)
+	return os.ReadFile(contract_file_path)
 }

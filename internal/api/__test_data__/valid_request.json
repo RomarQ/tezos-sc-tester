@@ -1,0 +1,282 @@
+{
+    "protocol": "ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK",
+    "actions": [
+        {
+            "kind": "modify_chain_id",
+            "payload": {
+                "chain_id": "NetXwWbjfCqBTLV"
+            }
+        },
+        {
+            "kind": "modify_block_level",
+            "payload": {
+                "level": 999999999
+            }
+        },
+        {
+            "kind": "create_implicit_account",
+            "payload": {
+                "name": "bob",
+                "balance": "1000000"
+            }
+        },
+        {
+            "kind": "assert_account_balance",
+            "payload": {
+                "account_name": "bob",
+                "balance": "1000000"
+            }
+        },
+        {
+            "kind": "originate_contract",
+            "payload": {
+                "name": "contract_1",
+                "balance": "11",
+                "code": [
+                    {
+                        "prim": "storage",
+                        "args": [
+                            {
+                                "prim": "set",
+                                "args": [
+                                    {
+                                        "prim": "address"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "prim": "parameter",
+                        "args": [
+                            {
+                                "prim": "or",
+                                "args": [
+                                    {
+                                        "prim": "unit",
+                                        "annots": [
+                                            "%add_admin"
+                                        ]
+                                    },
+                                    {
+                                        "prim": "or",
+                                        "args": [
+                                            {
+                                                "prim": "unit",
+                                                "annots": [
+                                                    "%remove_admin"
+                                                ]
+                                            },
+                                            {
+                                                "prim": "mutez",
+                                                "annots": [
+                                                    "%withdraw"
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "prim": "code",
+                        "args": [
+                            [
+                                {
+                                    "prim": "UNPAIR"
+                                },
+                                {
+                                    "prim": "IF_LEFT",
+                                    "args": [
+                                        [
+                                            {
+                                                "prim": "DROP"
+                                            },
+                                            {
+                                                "prim": "PUSH",
+                                                "args": [
+                                                    {
+                                                        "prim": "bool"
+                                                    },
+                                                    {
+                                                        "prim": "False"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "prim": "SENDER"
+                                            },
+                                            {
+                                                "prim": "UPDATE"
+                                            },
+                                            {
+                                                "prim": "NIL",
+                                                "args": [
+                                                    {
+                                                        "prim": "operation"
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        [
+                                            {
+                                                "prim": "IF_LEFT",
+                                                "args": [
+                                                    [
+                                                        {
+                                                            "prim": "DROP"
+                                                        },
+                                                        {
+                                                            "prim": "DUP"
+                                                        },
+                                                        {
+                                                            "prim": "SENDER"
+                                                        },
+                                                        {
+                                                            "prim": "MEM"
+                                                        },
+                                                        {
+                                                            "prim": "IF",
+                                                            "args": [
+                                                                [],
+                                                                [
+                                                                    {
+                                                                        "prim": "PUSH",
+                                                                        "args": [
+                                                                            {
+                                                                                "prim": "string"
+                                                                            },
+                                                                            {
+                                                                                "string": "Not Admin"
+                                                                            }
+                                                                        ]
+                                                                    },
+                                                                    {
+                                                                        "prim": "FAILWITH"
+                                                                    }
+                                                                ]
+                                                            ]
+                                                        },
+                                                        {
+                                                            "prim": "PUSH",
+                                                            "args": [
+                                                                {
+                                                                    "prim": "bool"
+                                                                },
+                                                                {
+                                                                    "prim": "False"
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "prim": "SENDER"
+                                                        },
+                                                        {
+                                                            "prim": "UPDATE"
+                                                        },
+                                                        {
+                                                            "prim": "NIL",
+                                                            "args": [
+                                                                {
+                                                                    "prim": "operation"
+                                                                }
+                                                            ]
+                                                        }
+                                                    ],
+                                                    [
+                                                        {
+                                                            "prim": "NIL",
+                                                            "args": [
+                                                                {
+                                                                    "prim": "operation"
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "prim": "SENDER"
+                                                        },
+                                                        {
+                                                            "prim": "CONTRACT",
+                                                            "args": [
+                                                                {
+                                                                    "prim": "unit"
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "prim": "IF_NONE",
+                                                            "args": [
+                                                                [
+                                                                    {
+                                                                        "prim": "PUSH",
+                                                                        "args": [
+                                                                            {
+                                                                                "prim": "string"
+                                                                            },
+                                                                            {
+                                                                                "string": "CONTRACT_NOT_FOUND"
+                                                                            }
+                                                                        ]
+                                                                    },
+                                                                    {
+                                                                        "prim": "FAILWITH"
+                                                                    }
+                                                                ],
+                                                                []
+                                                            ]
+                                                        },
+                                                        {
+                                                            "prim": "DIG",
+                                                            "args": [
+                                                                {
+                                                                    "int": "2"
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "prim": "UNIT"
+                                                        },
+                                                        {
+                                                            "prim": "TRANSFER_TOKENS"
+                                                        },
+                                                        {
+                                                            "prim": "CONS"
+                                                        }
+                                                    ]
+                                                ]
+                                            }
+                                        ]
+                                    ]
+                                },
+                                {
+                                    "prim": "PAIR"
+                                }
+                            ]
+                        ]
+                    }
+                ],
+                "storage": []
+            }
+        },
+        {
+            "kind": "assert_account_balance",
+            "payload": {
+                "account_name": "contract_1",
+                "balance": "11"
+            }
+        },
+        {
+            "kind": "call_contract",
+            "payload": {
+                "recipient": "contract_1",
+                "sender": "bob",
+                "amount": "1",
+                "entrypoint": "withdraw",
+                "parameter": {
+                    "int": "1"
+                }
+            }
+        }
+    ]
+}

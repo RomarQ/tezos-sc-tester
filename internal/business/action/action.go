@@ -73,6 +73,10 @@ func GetActions(rawActions []json.RawMessage) ([]IAction, error) {
 			action = &ModifyChainIdAction{
 				raw: rawAction,
 			}
+		case string(ModifyBlockLevel):
+			action = &ModifyBlockLevelAction{
+				raw: rawAction,
+			}
 		}
 
 		if err := action.Unmarshal(); err != nil {
