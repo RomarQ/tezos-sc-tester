@@ -8,12 +8,6 @@
             }
         },
         {
-            "kind": "modify_block_level",
-            "payload": {
-                "level": 999999999
-            }
-        },
-        {
             "kind": "create_implicit_account",
             "payload": {
                 "name": "bob",
@@ -272,6 +266,7 @@
                 "recipient": "contract_1",
                 "sender": "bob",
                 "amount": "1",
+                "level": 10,
                 "entrypoint": "withdraw",
                 "parameter": {
                     "int": "1"

@@ -59,7 +59,7 @@ func TestRunTest(t *testing.T) {
 		err = json.Unmarshal(rec.Body.Bytes(), &actionResponses)
 		assert.Nil(t, err, "Must not fail")
 
-		assert.Equal(t, len(actionResponses), 7, "Expects 7 action results")
+		assert.Equal(t, len(actionResponses), 6, "Expects 6 action results")
 
 		for _, response := range actionResponses {
 			assert.Equal(t, response.Status, action.Success, "Expects all actions to be sucessful")
