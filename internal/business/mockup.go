@@ -179,6 +179,33 @@ func (m Mockup) UpdateHeadBlockLevel(level int32) error {
 	return nil
 }
 
+// UpdateHeadBlockTimestamp updates the timestamp of the head block in the mockup context
+func (m Mockup) UpdateHeadBlockTimestamp(timestamp string) error {
+	logger.Debug("[Task #%s] - Updating block timestamp to (%s).", m.TaskID, timestamp)
+	contextPath := fmt.Sprintf("%s/mockup/context.json", m.getTaskDirectory())
+
+	errorMsg := fmt.Errorf("could not modify block timestamp.")
+
+	bytes, err := os.ReadFile(contextPath)
+	if err != nil {
+		logger.Debug("could not open %s: %s", contextPath, err)
+		return errorMsg
+	}
+	bytes, err = sjson.SetBytes(bytes, "context.shell_header.timestamp", timestamp)
+	if err != nil {
+		logger.Debug(`could not modify "context.shell_header.timestamp" field. %s`, err)
+		return errorMsg
+	}
+
+	err = os.WriteFile(contextPath, bytes, 644)
+	if err != nil {
+		logger.Debug("could not write to %s: %s", contextPath, err)
+		return errorMsg
+	}
+
+	return nil
+}
+
 // GenerateWallet generates a new wallet (uses ed25519 curve)
 func (m Mockup) GenerateWallet(walletName string) error {
 	logger.Debug("[Task #%s] - Generating wallet (%s).", m.TaskID, walletName)

@@ -37,6 +37,7 @@ const (
 const (
 	STRING_IDENTIFIER_REGEX = "^[a-zA-Z0-9_]+$"
 	ENTRYPOINT_REGEX        = "^[a-zA-Z0-9_]{1,31}$"
+	RFC3339_TIMESTAMP       = `^[1-9]\d{3}-\d{2}-\d{2}[tT]\d{2}:\d{2}:\d{2}[zZ]$`
 )
 
 // GetActions unmarshal test actions

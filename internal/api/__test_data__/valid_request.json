@@ -267,6 +267,7 @@
                 "sender": "bob",
                 "amount": "1",
                 "level": 10,
+                "timestamp": "1970-02-04T00:00:00Z",
                 "entrypoint": "withdraw",
                 "parameter": {
                     "int": "1"

@@ -58,8 +58,8 @@ export interface ICallContractPayload {
     recipient: string;
     sender: string;
     amount: string;
-    level: number;
-    timestamp: string;
+    level?: number;
+    timestamp?: string;
     entrypoint: string;
     parameter: Record<string, unknown> | Record<string, unknown>[];
 }

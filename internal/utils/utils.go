@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"time"
 
 	"blockwatch.cc/tzgo/tezos"
 )
@@ -44,4 +45,14 @@ func ValidateString(regex string, name string) error {
 func PrettifyJSON(o interface{}) string {
 	prettyJSON, _ := json.MarshalIndent(o, "", "  ")
 	return string(prettyJSON)
+}
+
+// ParseRFC3339Timestamp parse RFC3339 timestamp
+func ParseRFC3339Timestamp(timestamp string) (time.Time, error) {
+	return time.Parse(time.RFC3339, timestamp)
+}
+
+// FormatRFC3339Timestamp format timestamp to RFC3339
+func FormatRFC3339Timestamp(timestamp time.Time) string {
+	return timestamp.Format(time.RFC3339)
 }

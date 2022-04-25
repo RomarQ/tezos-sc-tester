@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/romarq/visualtez-testing/internal/business"
 	"github.com/romarq/visualtez-testing/internal/business/michelson"
@@ -22,6 +23,7 @@ type CallContractAction struct {
 			Recipient  string          `json:"recipient"`
 			Sender     string          `json:"sender"`
 			Level      int32           `json:"level"`
+			Timestamp  string          `json:"timestamp"`
 			Entrypoint string          `json:"entrypoint"`
 			Amount     string          `json:"amount"`
 			Parameter  json.RawMessage `json:"parameter"`
@@ -30,6 +32,7 @@ type CallContractAction struct {
 	Recipient  string
 	Sender     string
 	Level      int32
+	Timestamp  *time.Time
 	Entrypoint string
 	Amount     business.Mutez
 	Parameter  ast.Node
@@ -53,6 +56,14 @@ func (action *CallContractAction) Unmarshal() error {
 	action.Level = action.json.Payload.Level
 	if action.Level == 0 {
 		action.Level = 1
+	}
+	// "timestamp" field
+	if action.json.Payload.Timestamp != "" {
+		timestamp, err := utils.ParseRFC3339Timestamp(action.json.Payload.Timestamp)
+		if err != nil {
+			return fmt.Errorf(`field "timestamp" must use RFC3339 format. %s`, err)
+		}
+		action.Timestamp = &timestamp
 	}
 	// "sender" field
 	action.Sender = action.json.Payload.Sender
@@ -82,11 +93,22 @@ func (a CallContractAction) Marshal() json.RawMessage {
 
 // Perform the action
 func (action CallContractAction) Run(mockup business.Mockup) (interface{}, bool) {
-	// Update the block level one block in the past
-	// The transfer operation will increment 1 to the block level
+	// Update the level of the head block
+	// The transfer operation will create a new block
 	err := mockup.UpdateHeadBlockLevel(action.Level - 1)
 	if err != nil {
 		return err, false
+	}
+
+	if action.Timestamp != nil {
+		// Update the timestamp of the head block
+		// Subtract one second because the next block will increment
+		// the timestamp by one second
+		timestamp := action.Timestamp.Add(-time.Second)
+		err := mockup.UpdateHeadBlockTimestamp(utils.FormatRFC3339Timestamp(timestamp))
+		if err != nil {
+			return err, false
+		}
 	}
 
 	err = mockup.Transfer(business.CallContractArgument{
@@ -135,6 +157,11 @@ func (action CallContractAction) validate() error {
 		missingFields = append(missingFields, "entrypoint")
 	} else if err := utils.ValidateString(ENTRYPOINT_REGEX, action.json.Payload.Entrypoint); err != nil {
 		return err
+	}
+	if action.json.Payload.Timestamp != "" {
+		if err := utils.ValidateString(RFC3339_TIMESTAMP, action.json.Payload.Timestamp); err != nil {
+			return err
+		}
 	}
 	if action.json.Payload.Parameter == nil {
 		missingFields = append(missingFields, "parameter")
