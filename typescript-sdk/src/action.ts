@@ -6,6 +6,7 @@ export enum ActionKind {
     AssertAccountBalance = 'assert_account_balance',
     AssertContractStorage = 'assert_contract_storage',
     ModifyChainID = 'modify_chain_id',
+    PackData = 'pack_data',
 }
 
 // Action result status
@@ -20,7 +21,8 @@ export type IAction =
     | ICallContractAction
     | IAssertAccountBalanceAction
     | IAssertContractStorageAction
-    | IModifyChainIDAction;
+    | IModifyChainIDAction
+    | IPackDataAction;
 
 export interface IActionResult {
     status: ActionResultStatus;
@@ -95,8 +97,18 @@ export interface IAssertContractStorageAction {
 export interface IModifyChainIDPayload {
     chain_id: string;
 }
-
 export interface IModifyChainIDAction {
     kind: ActionKind.ModifyChainID;
     payload: IModifyChainIDPayload;
+}
+
+// pack_data
+
+export interface IPackDataPayload {
+    data: Record<string, unknown> | Record<string, unknown>[];
+    type: Record<string, unknown> | Record<string, unknown>[];
+}
+export interface IPackDataAction {
+    kind: ActionKind.PackData;
+    payload: IPackDataPayload;
 }
