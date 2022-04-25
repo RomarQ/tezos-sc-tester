@@ -73,7 +73,7 @@ func (a OriginateContractAction) Marshal() json.RawMessage {
 	return a.raw
 }
 
-// Perform action (Originates a contract)
+// Run performs action (Originates a contract)
 func (action OriginateContractAction) Run(mockup business.Mockup) (interface{}, bool) {
 	if mockup.ContainsAddress(action.Name) {
 		return fmt.Sprintf("Name (%s) is already in use.", action.Name), false
@@ -100,6 +100,7 @@ func (action OriginateContractAction) Run(mockup business.Mockup) (interface{}, 
 	}, true
 }
 
+// validate validates the action fields before interpreting them
 func (action OriginateContractAction) validate() error {
 	missingFields := make([]string, 0)
 	if action.json.Payload.Name == "" {

@@ -158,11 +158,6 @@ func (action CallContractAction) validate() error {
 	} else if err := utils.ValidateString(ENTRYPOINT_REGEX, action.json.Payload.Entrypoint); err != nil {
 		return err
 	}
-	if action.json.Payload.Timestamp != "" {
-		if err := utils.ValidateString(RFC3339_TIMESTAMP, action.json.Payload.Timestamp); err != nil {
-			return err
-		}
-	}
 	if action.json.Payload.Parameter == nil {
 		missingFields = append(missingFields, "parameter")
 	}

@@ -349,49 +349,7 @@ func (m Mockup) RevealWallet(walletName string, revealFee Mutez) error {
 	return err
 }
 
-func (m Mockup) GetBalance(name string) Mutez {
-	logger.Debug("[Task #%s] - Get balance of (%s).", m.TaskID, name)
-
-	arguments := composeArguments(
-		TezosClientArgument{
-			Kind:       Mode,
-			Parameters: []string{"mockup"},
-		},
-		TezosClientArgument{
-			Kind:       BaseDirectory,
-			Parameters: []string{m.getTaskDirectory()},
-		},
-		TezosClientArgument{
-			Kind:       Protocol,
-			Parameters: []string{m.getProtocol()},
-		},
-		TezosClientArgument{
-			Kind:       COMMAND,
-			Parameters: []string{"get", "balance", "for", name},
-		},
-	)
-
-	// Execute command
-	output, err := m.runTezosClient(m.getTezosClientPath(), arguments)
-	if err != nil {
-		return MutezOfFloat(big.NewFloat(0))
-	}
-
-	// Extract balance in ꜩ
-	pattern := regexp.MustCompile(`(\d*.?\d*)\sꜩ`)
-	match := pattern.FindStringSubmatch(output)
-	if len(match) < 2 {
-		return MutezOfFloat(big.NewFloat(0))
-	}
-
-	balance, err := TezOfString(match[1])
-	if err != nil {
-		return MutezOfFloat(big.NewFloat(0))
-	}
-
-	return balance.ToMutez()
-}
-
+// Originate deploys a smart contract
 func (m *Mockup) Originate(sender string, contractName string, amount Mutez, code string, storage string) (string, error) {
 	logger.Debug("[Task #%s] - Originating contract (%s).", m.TaskID, contractName)
 
@@ -436,12 +394,98 @@ func (m *Mockup) Originate(sender string, contractName string, amount Mutez, cod
 	pattern := regexp.MustCompile(`New\scontract\s(\w+)\soriginated`)
 	match := pattern.FindStringSubmatch(output)
 	if len(match) < 2 || len(match[1]) < 36 || match[1][0:3] != "KT1" {
-		return "", fmt.Errorf("Could not extract the contract address from origination output.")
+		return "", fmt.Errorf("could not extract the contract address from origination output.")
 	}
 
 	return match[1], nil
 }
 
+// SerializeData serializes a michelson value
+func (m *Mockup) SerializeData(dataNode string, typeNode string) (string, error) {
+	logger.Debug("[Task #%s] - Serialize Michelson Data (%s).", m.TaskID)
+
+	arguments := composeArguments(
+		TezosClientArgument{
+			Kind:       Mode,
+			Parameters: []string{"mockup"},
+		},
+		TezosClientArgument{
+			Kind:       BaseDirectory,
+			Parameters: []string{m.getTaskDirectory()},
+		},
+		TezosClientArgument{
+			Kind:       Protocol,
+			Parameters: []string{m.getProtocol()},
+		},
+		TezosClientArgument{
+			Kind: COMMAND,
+			Parameters: []string{
+				"hash", "data", dataNode, "of", "type", typeNode,
+			},
+		},
+	)
+
+	output, err := m.runTezosClient(m.getTezosClientPath(), arguments)
+	if err != nil {
+		logger.Debug("failed to pack michelson data. %s", err)
+		return "", err
+	}
+
+	// Extract contract address
+	pattern := regexp.MustCompile(`Raw\spacked\sdata.*(0x05\w*)`)
+	match := pattern.FindStringSubmatch(output)
+	if len(match) < 2 {
+		return "", fmt.Errorf("could not extract the packed bytes.")
+	}
+
+	return match[1], nil
+}
+
+// GetBalance fetches the balance of a given address (implicit account or originated contract)
+func (m Mockup) GetBalance(name string) Mutez {
+	logger.Debug("[Task #%s] - Get balance of (%s).", m.TaskID, name)
+
+	arguments := composeArguments(
+		TezosClientArgument{
+			Kind:       Mode,
+			Parameters: []string{"mockup"},
+		},
+		TezosClientArgument{
+			Kind:       BaseDirectory,
+			Parameters: []string{m.getTaskDirectory()},
+		},
+		TezosClientArgument{
+			Kind:       Protocol,
+			Parameters: []string{m.getProtocol()},
+		},
+		TezosClientArgument{
+			Kind:       COMMAND,
+			Parameters: []string{"get", "balance", "for", name},
+		},
+	)
+
+	// Execute command
+	output, err := m.runTezosClient(m.getTezosClientPath(), arguments)
+	if err != nil {
+		return MutezOfFloat(big.NewFloat(0))
+	}
+
+	// Extract balance in ꜩ
+	pattern := regexp.MustCompile(`(\d*.?\d*)\sꜩ`)
+	match := pattern.FindStringSubmatch(output)
+	if len(match) < 2 {
+		return MutezOfFloat(big.NewFloat(0))
+	}
+
+	balance, err := TezOfString(match[1])
+	if err != nil {
+		return MutezOfFloat(big.NewFloat(0))
+	}
+
+	return balance.ToMutez()
+}
+
+// GetContractStorage fetches the storage of a given contract
 func (m Mockup) GetContractStorage(contractName string) (ast.Node, error) {
 	logger.Debug("[Task #%s] - Get storage from contract (%s).", m.TaskID, contractName)
 

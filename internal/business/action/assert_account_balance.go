@@ -55,9 +55,16 @@ func (action AssertAccountBalanceAction) Marshal() json.RawMessage {
 func (action AssertAccountBalanceAction) Run(mockup business.Mockup) (interface{}, bool) {
 	balance := mockup.GetBalance(action.AccountName)
 
+	if balance.String() != action.Balance.String() {
+		return map[string]string{
+			"expected": action.Balance.String(),
+			"actual":   balance.String(),
+		}, false
+	}
+
 	return map[string]string{
 		"balance": balance.String(),
-	}, balance.String() == action.Balance.String()
+	}, true
 }
 
 func (action AssertAccountBalanceAction) validate() error {

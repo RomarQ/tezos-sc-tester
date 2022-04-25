@@ -273,6 +273,13 @@
                     "int": "1"
                 }
             }
+        },
+        {
+            "kind": "pack_data",
+            "payload": {
+                "data": { "string": "Hello World" },
+                "type": { "prim": "string" }
+            }
         }
     ]
 }
