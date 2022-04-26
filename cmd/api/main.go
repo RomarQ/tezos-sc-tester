@@ -12,25 +12,25 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
 
-	API "github.com/romarq/visualtez-testing/internal/api"
-	Config "github.com/romarq/visualtez-testing/internal/config"
-	LOG "github.com/romarq/visualtez-testing/internal/logger"
+	"github.com/romarq/visualtez-testing/internal/api"
+	"github.com/romarq/visualtez-testing/internal/config"
+	"github.com/romarq/visualtez-testing/internal/logger"
 
 	_ "github.com/romarq/visualtez-testing/docs"
 )
 
 var VERSION = "" // Updated with "-ldflags" during build
 
-// InitializeAPI - Initialize REST API
+// Initialize REST API
 // @title Visualtez Testing API
 // @version 1.0
 // @description API documentation
 // @BasePath /
 func main() {
-	configuration := Config.GetConfig()
-	LOG.SetupLogger(configuration.Log.Location, configuration.Log.Level)
+	configuration := config.GetConfig()
+	logger.SetupLogger(configuration.Log.Location, configuration.Log.Level)
 
-	LOG.Info("Initializing API (v%s)...", VERSION)
+	logger.Info("Initializing API (v%s)...", VERSION)
 
 	e := echo.New()
 
@@ -58,7 +58,7 @@ func main() {
 		},
 	})
 
-	testingAPI := API.InitTestingAPI(configuration)
+	testingAPI := api.InitTestingAPI(configuration)
 
 	// API Documentation
 	e.GET("/doc/*", echoSwagger.WrapHandler)
@@ -69,7 +69,7 @@ func main() {
 	// Start REST API Service
 	go func() {
 		if err := e.Start(":" + configuration.Port); err != nil && err != http.ErrServerClosed {
-			LOG.Fatal("Shutting down REST API service: %v", err)
+			logger.Fatal("shutting down REST API service: %v", err)
 		}
 	}()
 
@@ -84,6 +84,6 @@ func main() {
 	defer cancel()
 
 	if err := e.Shutdown(ctx); err != nil {
-		LOG.Fatal("Error during shutdown: %v", err)
+		logger.Fatal("error during shutdown: %v", err)
 	}
 }

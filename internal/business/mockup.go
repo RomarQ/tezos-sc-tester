@@ -259,6 +259,7 @@ func (m Mockup) ImportSecret(privateKey string, walletName string) error {
 	return err
 }
 
+// Transfer calls a given address
 func (m Mockup) Transfer(arg CallContractArgument) error {
 	logger.Debug("[Task #%s] - Calling contract %s. %v", m.TaskID, arg.Recipient, arg)
 
@@ -318,7 +319,7 @@ func (m Mockup) Transfer(arg CallContractArgument) error {
 	return nil
 }
 
-// Reveal wallet
+// RevealWallet reveals wallet
 func (m Mockup) RevealWallet(walletName string, revealFee Mutez) error {
 	logger.Debug("[Task #%s] - Revealing wallet (%s).", m.TaskID, walletName)
 
