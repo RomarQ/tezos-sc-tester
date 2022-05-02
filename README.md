@@ -23,9 +23,12 @@ make test
 ## Run docker container
 
 ```sh
-docker run --rm ghcr.io/romarq/visualtez-testing
+// arm64
+sudo docker run -p 5000:5000 --name testing-api -d ghcr.io/romarq/visualtez-testing:0.0.5_arm64
+// amd64
+sudo docker run -p 5000:5000 --name testing-api -d ghcr.io/romarq/visualtez-testing:0.0.5_amd64
 ```
 
 ### Configuration
 
-The configuration can be modified at [./config](./config).
+The configuration can be modified at [./config.yaml](./config.yaml).
