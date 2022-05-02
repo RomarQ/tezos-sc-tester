@@ -32,6 +32,7 @@ func TestRunTest(t *testing.T) {
 			Location: "../../.tmp_test/api.log",
 		},
 		Tezos: config.TezosConfig{
+			TezosClient:     "../../tezos-bin/amd64/tezos-client",
 			DefaultProtocol: "ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK",
 			BaseDirectory:   "../../tezos-bin",
 			RevealFee:       1000,

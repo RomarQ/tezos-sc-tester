@@ -1,5 +1,6 @@
 port: 5000
 tezos:
+  tezos_client: /opt/tezos/tezos-client
   dir: /opt/tezos
   default_protocol: ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK
   reveal_fee: 1000

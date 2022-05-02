@@ -15,8 +15,6 @@ import (
 	"github.com/tidwall/sjson"
 )
 
-const cmd_tezos_client = "tezos-client"
-
 type (
 	TezosClientArgumentKind int8
 	ParsingMode             string
@@ -726,7 +724,7 @@ func (m Mockup) getTaskDirectory() string {
 
 // getTezosClientPath gives the path to the 'tezos-client' binary
 func (m Mockup) getTezosClientPath() string {
-	return fmt.Sprintf("%s/%s", m.Config.Tezos.BaseDirectory, cmd_tezos_client)
+	return m.Config.Tezos.TezosClient
 }
 
 // getProtocol gives the protocol being used in the mockup

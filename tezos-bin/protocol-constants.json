@@ -2,7 +2,6 @@
   "blocks_per_cycle": 999999999,
   "blocks_per_commitment": 999999999,
   "blocks_per_stake_snapshot": 999999999,
-  "blocks_per_voting_period": 999999999,
   "chain_id": "NetXynUjJNZm7wi",
   "initial_timestamp": "1970-01-01T00:00:00Z"
 }

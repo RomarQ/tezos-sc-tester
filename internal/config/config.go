@@ -25,6 +25,7 @@ type LogConfig struct {
 
 // TezosConfig holds tezos configurations
 type TezosConfig struct {
+	TezosClient     string  `yaml:"tezos_client"`
 	BaseDirectory   string  `yaml:"dir"`
 	DefaultProtocol string  `yaml:"default_protocol"`
 	RevealFee       float64 `yaml:"reveal_fee"`

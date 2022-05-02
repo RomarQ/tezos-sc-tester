@@ -17,6 +17,7 @@ func runMockupAndTeardown(t *testing.T, testFunc func(mockup Mockup)) {
 				Level:    "debug",
 			},
 			Tezos: config.TezosConfig{
+				TezosClient:     "../../tezos-bin/amd64/tezos-client",
 				DefaultProtocol: "ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK",
 				BaseDirectory:   "../../tezos-bin",
 				RevealFee:       1000,

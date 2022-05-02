@@ -6,3 +6,6 @@
 *.log
 vendor
 coverage.out
+
+tezos-bin/amd64
+tezos-bin/arm64
