@@ -26,6 +26,7 @@ download-tezos-client:
 	mkdir -p tezos-bin/amd64 tezos-bin/arm64
 	wget -O tezos-bin/amd64/tezos-client https://gitlab.com/tezos/tezos/-/jobs/2376802446/artifacts/raw/tezos-binaries/x86_64/tezos-client
 	wget -O tezos-bin/arm64/tezos-client https://gitlab.com/tezos/tezos/-/jobs/2376802447/artifacts/raw/tezos-binaries/arm64/tezos-client
+	chmod +x tezos-bin/amd64/tezos-client tezos-bin/arm64/tezos-client
 
 BUILD_DIRS := bin/$(OS)_$(ARCH)
 
