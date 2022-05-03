@@ -13,20 +13,22 @@ DOCKER_REPO := "ghcr.io/romarq/visualtez-testing"
 AMD64_IMAGE ?= alpine:3.15.4
 ARM64_IMAGE ?= arm64v8/alpine:3.15.4
 
-all: install download-tezos-client build
+all: install build
 
-install:
+install: download-tezos-client
 	@go mod tidy
 	@go mod vendor
 
 test:
 	@go test -cover -coverprofile=coverage.out -v ./...
 
-download-tezos-client:
-	mkdir -p tezos-bin/amd64 tezos-bin/arm64
-	wget -O tezos-bin/amd64/tezos-client https://gitlab.com/tezos/tezos/-/jobs/2376802446/artifacts/raw/tezos-binaries/x86_64/tezos-client
-	wget -O tezos-bin/arm64/tezos-client https://gitlab.com/tezos/tezos/-/jobs/2376802447/artifacts/raw/tezos-binaries/arm64/tezos-client
-	chmod +x tezos-bin/amd64/tezos-client tezos-bin/arm64/tezos-client
+download-tezos-client: .download-tezos-client
+.download-tezos-client:
+	@mkdir -p tezos-bin/amd64 tezos-bin/arm64
+	@wget -O tezos-bin/amd64/tezos-client https://gitlab.com/tezos/tezos/-/jobs/2376802446/artifacts/raw/tezos-binaries/x86_64/tezos-client
+	@wget -O tezos-bin/arm64/tezos-client https://gitlab.com/tezos/tezos/-/jobs/2376802447/artifacts/raw/tezos-binaries/arm64/tezos-client
+	@chmod +x tezos-bin/amd64/tezos-client tezos-bin/arm64/tezos-client
+	@touch .download-tezos-client
 
 BUILD_DIRS := bin/$(OS)_$(ARCH)
 

@@ -20,22 +20,24 @@ type CallContractAction struct {
 	json struct {
 		Kind    string `json:"kind"`
 		Payload struct {
-			Recipient  string          `json:"recipient"`
-			Sender     string          `json:"sender"`
-			Level      int32           `json:"level"`
-			Timestamp  string          `json:"timestamp"`
-			Entrypoint string          `json:"entrypoint"`
-			Amount     string          `json:"amount"`
-			Parameter  json.RawMessage `json:"parameter"`
+			Recipient     string          `json:"recipient"`
+			Sender        string          `json:"sender"`
+			Level         int32           `json:"level"`
+			Timestamp     string          `json:"timestamp"`
+			Entrypoint    string          `json:"entrypoint"`
+			Amount        string          `json:"amount"`
+			Parameter     json.RawMessage `json:"parameter"`
+			ExpectFailure bool            `json:"expect_failure"`
 		} `json:"payload"`
 	}
-	Recipient  string
-	Sender     string
-	Level      int32
-	Timestamp  *time.Time
-	Entrypoint string
-	Amount     business.Mutez
-	Parameter  ast.Node
+	Recipient     string
+	Sender        string
+	Level         int32
+	Timestamp     *time.Time
+	Entrypoint    string
+	Amount        business.Mutez
+	Parameter     ast.Node
+	ExpectFailure bool
 }
 
 // Unmarshal action
@@ -83,6 +85,9 @@ func (action *CallContractAction) Unmarshal() error {
 		return fmt.Errorf(`invalid parameter.`)
 	}
 
+	// "expect_failure" field
+	action.ExpectFailure = action.json.Payload.ExpectFailure
+
 	return nil
 }
 
@@ -119,7 +124,7 @@ func (action CallContractAction) Run(mockup business.Mockup) (interface{}, bool)
 		Parameter:  expandPlaceholders(mockup, micheline.Print(action.Parameter, "")),
 	})
 	if err != nil {
-		return err, false
+		return err, action.ExpectFailure
 	}
 
 	storage, err := mockup.GetContractStorage(action.Recipient)
@@ -138,7 +143,7 @@ func (action CallContractAction) Run(mockup business.Mockup) (interface{}, bool)
 
 	return map[string]interface{}{
 		"storage": actualStorageJSON,
-	}, true
+	}, !action.ExpectFailure
 }
 
 func (action CallContractAction) validate() error {

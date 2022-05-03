@@ -64,6 +64,7 @@ export interface ICallContractPayload {
     timestamp?: string;
     entrypoint: string;
     parameter: Record<string, unknown> | Record<string, unknown>[];
+    expect_failure?: boolean;
 }
 export interface ICallContractAction {
     kind: ActionKind.CallContract;
