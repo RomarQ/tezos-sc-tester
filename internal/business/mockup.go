@@ -385,7 +385,6 @@ func (m *Mockup) Originate(sender string, contractName string, amount Mutez, cod
 
 	output, err := m.runTezosClient(m.getTezosClientPath(), arguments)
 	if err != nil {
-		logger.Debug("could originate contract. %s", err)
 		return "", err
 	}
 
