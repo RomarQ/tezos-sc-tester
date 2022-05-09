@@ -58,7 +58,14 @@ func (action AssertContractStorageAction) Marshal() json.RawMessage {
 }
 
 // Perform the action
-func (action AssertContractStorageAction) Run(mockup business.Mockup) (interface{}, bool) {
+func (action AssertContractStorageAction) Run(mockup business.Mockup) (result interface{}, success bool) {
+	defer func() {
+		if err := recover(); err != nil {
+			result = err
+			success = false
+		}
+	}()
+
 	storage, err := mockup.GetContractStorage(action.ContractName)
 	if err != nil {
 		errMsg := fmt.Errorf("could not fetch storage for contract (%s)", action.ContractName)
@@ -90,7 +97,7 @@ func (action AssertContractStorageAction) Run(mockup business.Mockup) (interface
 		return err, false
 	}
 
-	if expectedStorageAST != storage {
+	if expectedStorageAST.String() != storage.String() {
 		return map[string]json.RawMessage{
 			"expected": expectedStorageJSON,
 			"actual":   actualStorageJSON,

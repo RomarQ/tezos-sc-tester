@@ -79,7 +79,8 @@ func (action OriginateContractAction) Run(mockup business.Mockup) (interface{}, 
 		return fmt.Sprintf("Name (%s) is already in use.", action.Name), false
 	}
 
-	codeMicheline := expandPlaceholders(mockup, micheline.Print(action.Code, ""))
+	codeMicheline := replaceBigMaps(micheline.Print(action.Code, ""))
+	codeMicheline = expandPlaceholders(mockup, codeMicheline)
 	storageMicheline := expandPlaceholders(mockup, micheline.Print(action.Storage, ""))
 	address, err := mockup.Originate(mockup.Config.Tezos.Originator, action.Name, action.Balance, codeMicheline, storageMicheline)
 	if err != nil {

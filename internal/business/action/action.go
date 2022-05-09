@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/tidwall/gjson"
 
@@ -111,6 +112,12 @@ func expandPlaceholders(mockup business.Mockup, str string) string {
 	b = business.ExpandBalancePlaceholders(mockup, b)
 
 	return string(b)
+}
+
+// replaceBigMaps converts all 'big_map' types to 'map'
+// This is necessary for testing the storage updates
+func replaceBigMaps(str string) string {
+	return strings.ReplaceAll(str, "big_map", "map")
 }
 
 func buildResult(status ActionStatus, result interface{}, action IAction) ActionResult {

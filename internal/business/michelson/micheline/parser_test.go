@@ -67,6 +67,16 @@ func TestParseValues(t *testing.T) {
 			},
 		})
 	})
+	t.Run("Parse right combs", func(t *testing.T) {
+		runTests(t, []test{
+			{
+				Input: `Pair (Pair "tz1f2k9M3ztqtbCTk5EmEepboEJxksXvafaU" True)
+				(Pair {} {} {} {} 0)
+				{}`,
+				Output: `Prim(Pair, [], [Prim(Pair, [], [String(tz1f2k9M3ztqtbCTk5EmEepboEJxksXvafaU), Prim(True, [], [])]), Prim(Pair, [], [Sequence([]), Sequence([]), Sequence([]), Sequence([]), Int(0)]), Sequence([])])`,
+			},
+		})
+	})
 }
 
 func TestParseContracts(t *testing.T) {
