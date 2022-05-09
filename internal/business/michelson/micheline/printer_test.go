@@ -12,7 +12,7 @@ import (
 )
 
 func TestPrint(t *testing.T) {
-	ast := ast.Sequence{
+	codeAST := ast.Sequence{
 		Elements: []ast.Node{
 			ast.Prim{
 				Prim: "storage",
@@ -57,17 +57,46 @@ func TestPrint(t *testing.T) {
 	t.Run("With indentation", func(t *testing.T) {
 		bytes, err := getTestData("print_with_indent.tz")
 		assert.NoError(t, err, "Must not fail")
-		micheline := Print(ast, "    ")
-		assert.NoError(t, err, "Must not fail")
+		micheline := Print(codeAST, "    ")
 		assert.Equal(t, micheline, strings.Trim(string(bytes), "\n"), "Validate snapshot")
 	})
 
 	t.Run("Without indentation", func(t *testing.T) {
 		bytes, err := getTestData("print_without_indent.tz")
 		assert.NoError(t, err, "Must not fail")
-		micheline := Print(ast, "")
-		assert.NoError(t, err, "Must not fail")
+		micheline := Print(codeAST, "")
 		assert.Equal(t, micheline, strings.Trim(string(bytes), "\n"), "Validate snapshot")
+	})
+
+	t.Run("Print sequences", func(t *testing.T) {
+		seq := ast.Sequence{
+			Elements: []ast.Node{
+				ast.Prim{
+					Prim: "Pair",
+					Arguments: []ast.Node{
+						ast.Int{
+							Value: "1",
+						},
+						ast.Int{
+							Value: "2",
+						},
+					},
+				},
+				ast.Prim{
+					Prim: "Pair",
+					Arguments: []ast.Node{
+						ast.Int{
+							Value: "3",
+						},
+						ast.Int{
+							Value: "4",
+						},
+					},
+				},
+			},
+		}
+		micheline := Print(seq, "")
+		assert.Equal(t, micheline, "{ Pair 1 2; Pair 3 4 }", "Validate snapshot")
 	})
 }
 

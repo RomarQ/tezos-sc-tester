@@ -121,10 +121,14 @@ func replaceBigMaps(str string) string {
 }
 
 func buildResult(status ActionStatus, result interface{}, action IAction) ActionResult {
-	switch result.(type) {
-	case string, error:
+	switch v := result.(type) {
+	case string:
 		result = map[string]interface{}{
-			"details": fmt.Sprint(result),
+			"details": v,
+		}
+	case error:
+		result = map[string]interface{}{
+			"details": v.Error(),
 		}
 	}
 	return ActionResult{

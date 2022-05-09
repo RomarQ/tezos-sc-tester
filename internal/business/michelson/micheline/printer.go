@@ -20,10 +20,10 @@ func Print(n ast.Node, indent string) string {
 		indent: indent,
 		depth:  0,
 	}
-	return p.print(n)
+	return p.print(n, true)
 }
 
-func (p *context) print(n ast.Node) (micheline string) {
+func (p *context) print(n ast.Node, allowParenthesis bool) (micheline string) {
 	switch node := n.(type) {
 	case ast.Bytes:
 		micheline = fmt.Sprintf("0x%s", node.Value)
@@ -32,23 +32,23 @@ func (p *context) print(n ast.Node) (micheline string) {
 	case ast.String:
 		micheline = fmt.Sprintf(`"%s"`, node.Value)
 	case ast.Prim:
-		micheline = p.printPrim(node)
+		micheline = p.printPrim(node, allowParenthesis)
 	case ast.Sequence:
 		micheline = p.printSequence(node)
 	}
 	return
 }
 
-func (p *context) printPrim(n ast.Prim) string {
+func (p *context) printPrim(n ast.Prim, allowParenthesis bool) string {
 	args := []string{n.Prim}
 	for _, el := range n.Annotations {
 		args = append(args, el.Value)
 	}
 	for _, el := range n.Arguments {
-		args = append(args, p.print(el))
+		args = append(args, p.print(el, true))
 	}
 
-	if n.Prim == "Elt" || utils.IsInstruction(n.Prim) || utils.IsReservedWord(n.Prim) {
+	if !allowParenthesis || utils.IsInstruction(n.Prim) || utils.IsReservedWord(n.Prim) {
 		return fmt.Sprintf("%s", strings.Join(args, " "))
 	}
 
@@ -67,7 +67,7 @@ func (p *context) printSequence(n ast.Sequence) string {
 
 	elements := make([]string, 0)
 	for _, el := range n.Elements {
-		elements = append(elements, p.print(el))
+		elements = append(elements, p.print(el, false))
 	}
 
 	return fmt.Sprintf("{%s%s%s}", p.getIndent(), strings.Join(elements, fmt.Sprintf(";%s", p.getIndent())), prevIndent)

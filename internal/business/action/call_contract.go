@@ -123,7 +123,7 @@ func (action CallContractAction) Run(mockup business.Mockup) (interface{}, bool)
 		Source:     action.Sender,
 		Entrypoint: action.Entrypoint,
 		Amount:     action.Amount,
-		Parameter:  expandPlaceholders(mockup, parameterMicheline),
+		Parameter:  parameterMicheline,
 	})
 	if err != nil {
 		return err, action.ExpectFailure
@@ -131,15 +131,15 @@ func (action CallContractAction) Run(mockup business.Mockup) (interface{}, bool)
 
 	storage, err := mockup.GetContractStorage(action.Recipient)
 	if err != nil {
-		err = fmt.Errorf("could not fetch storage for contract (%s). %s", action.Recipient, err)
-		logger.Debug("[%s] %s", CallContract, err)
+		err = fmt.Errorf("could not fetch storage for contract (%s).", action.Recipient)
+		logger.Debug("[%s] %s", CallContract, err.Error())
 		return err, false
 	}
 
 	actualStorageJSON, err := MichelsonJSON.Print(storage, "", "  ")
 	if err != nil {
-		err = fmt.Errorf("failed to print actual contract storage to JSON. %s", err)
-		logger.Debug("[%s] %s", AssertContractStorage, err)
+		err = fmt.Errorf("failed to print actual contract storage to JSON")
+		logger.Debug("[%s] %s", AssertContractStorage, err.Error())
 		return err, false
 	}
 

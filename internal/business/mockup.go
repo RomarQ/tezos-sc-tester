@@ -310,11 +310,8 @@ func (m Mockup) Transfer(arg CallContractArgument) error {
 	arguments := composeArguments(args...)
 
 	_, err := m.runTezosClient(m.getTezosClientPath(), arguments)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 // RevealWallet reveals wallet
