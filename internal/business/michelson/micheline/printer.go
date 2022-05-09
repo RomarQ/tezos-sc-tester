@@ -48,7 +48,7 @@ func (p *context) printPrim(n ast.Prim) string {
 		args = append(args, p.print(el))
 	}
 
-	if utils.IsInstruction(n.Prim) || utils.IsReservedWord(n.Prim) {
+	if n.Prim == "Elt" || utils.IsInstruction(n.Prim) || utils.IsReservedWord(n.Prim) {
 		return fmt.Sprintf("%s", strings.Join(args, " "))
 	}
 

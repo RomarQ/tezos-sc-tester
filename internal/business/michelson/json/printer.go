@@ -20,7 +20,8 @@ func translateAST(n ast.Node) interface{} {
 	case ast.Int:
 		obj = MichelsonJSON{Int: node.Value}
 	case ast.String:
-		obj = MichelsonJSON{String: node.Value}
+		str := node.Value
+		obj = MichelsonJSON{String: &str}
 	case ast.Prim:
 		prim := MichelsonJSON{
 			Prim: node.Prim,

@@ -82,7 +82,7 @@ func (action *CallContractAction) Unmarshal() error {
 	action.Parameter, err = michelson.ParseJSON(action.json.Payload.Parameter)
 	if err != nil {
 		logger.Debug("%+v", action.json.Payload.Parameter)
-		return fmt.Errorf(`invalid parameter.`)
+		return fmt.Errorf(`invalid parameter. %s`, err)
 	}
 
 	// "expect_failure" field
@@ -116,12 +116,14 @@ func (action CallContractAction) Run(mockup business.Mockup) (interface{}, bool)
 		}
 	}
 
+	parameterMicheline := replaceBigMaps(micheline.Print(action.Parameter, ""))
+	parameterMicheline = expandPlaceholders(mockup, parameterMicheline)
 	err = mockup.Transfer(business.CallContractArgument{
 		Recipient:  action.Recipient,
 		Source:     action.Sender,
 		Entrypoint: action.Entrypoint,
 		Amount:     action.Amount,
-		Parameter:  expandPlaceholders(mockup, micheline.Print(action.Parameter, "")),
+		Parameter:  expandPlaceholders(mockup, parameterMicheline),
 	})
 	if err != nil {
 		return err, action.ExpectFailure

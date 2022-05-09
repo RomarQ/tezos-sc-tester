@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/romarq/visualtez-testing/internal/business/michelson/ast"
-	"github.com/romarq/visualtez-testing/internal/utils"
 )
 
 type Parser struct {
@@ -35,7 +34,7 @@ func (p *Parser) Parse(raw []byte) (node ast.Node, err error) {
 			}
 		case obj.isString():
 			node = ast.String{
-				Value: obj.String,
+				Value: *obj.String,
 			}
 		case obj.isBytes():
 			node = ast.Bytes{
@@ -64,7 +63,7 @@ func (p *Parser) Parse(raw []byte) (node ast.Node, err error) {
 			}
 			node = prim
 		default:
-			p.errorf("unexpected Michelson JSON: %s.", utils.PrettifyJSON(raw))
+			p.errorf("unexpected Michelson JSON: %s.", string(raw))
 		}
 	case []json.RawMessage:
 		elements := make([]ast.Node, len(obj))
@@ -80,7 +79,7 @@ func (p *Parser) Parse(raw []byte) (node ast.Node, err error) {
 			Elements: elements,
 		}
 	default:
-		p.errorf("unexpected Michelson JSON: %s.", utils.PrettifyJSON(raw))
+		p.errorf("unexpected Michelson JSON: %s.", string(raw))
 	}
 
 	// Errors found during parsing will be aggregated on defer

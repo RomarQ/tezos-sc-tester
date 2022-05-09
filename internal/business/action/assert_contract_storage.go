@@ -46,7 +46,7 @@ func (action *AssertContractStorageAction) Unmarshal() error {
 	action.Storage, err = michelson.ParseJSON(action.json.Payload.Storage)
 	if err != nil {
 		logger.Debug("%+v", action.json.Payload.Storage)
-		return fmt.Errorf(`invalid michelson.`)
+		return fmt.Errorf(`invalid michelson. %s`, err)
 	}
 
 	return nil
