@@ -2,7 +2,7 @@ APP_NAME := visualtez-testing
 
 BIN := api
 
-VERSION := 0.0.5
+VERSION := 0.0.6
 
 ALL_PLATFORMS := linux/amd64 linux/arm64
 

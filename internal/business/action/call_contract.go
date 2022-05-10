@@ -20,24 +20,24 @@ type CallContractAction struct {
 	json struct {
 		Kind    string `json:"kind"`
 		Payload struct {
-			Recipient     string          `json:"recipient"`
-			Sender        string          `json:"sender"`
-			Level         int32           `json:"level"`
-			Timestamp     string          `json:"timestamp"`
-			Entrypoint    string          `json:"entrypoint"`
-			Amount        string          `json:"amount"`
-			Parameter     json.RawMessage `json:"parameter"`
-			ExpectFailure bool            `json:"expect_failure"`
+			Recipient      string          `json:"recipient"`
+			Sender         string          `json:"sender"`
+			Level          int32           `json:"level"`
+			Timestamp      string          `json:"timestamp"`
+			Entrypoint     string          `json:"entrypoint"`
+			Amount         string          `json:"amount"`
+			Parameter      json.RawMessage `json:"parameter"`
+			ExpectFailwith json.RawMessage `json:"expect_failwith"`
 		} `json:"payload"`
 	}
-	Recipient     string
-	Sender        string
-	Level         int32
-	Timestamp     *time.Time
-	Entrypoint    string
-	Amount        business.Mutez
-	Parameter     ast.Node
-	ExpectFailure bool
+	Recipient      string
+	Sender         string
+	Level          int32
+	Timestamp      *time.Time
+	Entrypoint     string
+	Amount         business.Mutez
+	Parameter      ast.Node
+	ExpectFailwith ast.Node
 }
 
 // Unmarshal action
@@ -82,11 +82,17 @@ func (action *CallContractAction) Unmarshal() error {
 	action.Parameter, err = michelson.ParseJSON(action.json.Payload.Parameter)
 	if err != nil {
 		logger.Debug("%+v", action.json.Payload.Parameter)
-		return fmt.Errorf(`invalid parameter. %s`, err)
+		return fmt.Errorf(`invalid 'parameter'. %s`, err)
 	}
 
-	// "expect_failure" field
-	action.ExpectFailure = action.json.Payload.ExpectFailure
+	// "expect_failwith" field
+	if action.json.Payload.ExpectFailwith != nil {
+		action.ExpectFailwith, err = michelson.ParseJSON(action.json.Payload.ExpectFailwith)
+		if err != nil {
+			logger.Debug("%+v", action.json.Payload.ExpectFailwith)
+			return fmt.Errorf(`invalid 'expect_failwith'. %s`, err)
+		}
+	}
 
 	return nil
 }
@@ -126,26 +132,46 @@ func (action CallContractAction) Run(mockup business.Mockup) (interface{}, bool)
 		Parameter:  parameterMicheline,
 	})
 	if err != nil {
-		return err, action.ExpectFailure
+		if action.ExpectFailwith == nil {
+			// The transfer was not expected to fail
+			return err, false
+		}
+		// The transfer was expected to fail.
+		// Extract the error emitted with (FAILWITH), the error is a micheline value
+		michelineError, err := utils.ExtractFailWithError(err.Error())
+		if err != nil {
+			return err, false
+		}
+
+		// Validate the error against the user input
+		if michelineError.String() != action.ExpectFailwith.String() {
+			michelsonJson, err := MichelsonJSON.Print(michelineError, "", "  ")
+			if err != nil {
+				errMsg := fmt.Sprintf("failed to print (FAILWITH) result to michelson JSON. %s", err.Error())
+				logger.Debug("[%s] %s", AssertContractStorage, errMsg)
+			}
+			return map[string]json.RawMessage{
+				"expected": action.json.Payload.ExpectFailwith,
+				"actual":   michelsonJson,
+			}, false
+		}
 	}
 
 	storage, err := mockup.GetContractStorage(action.Recipient)
 	if err != nil {
-		err = fmt.Errorf("could not fetch storage for contract (%s).", action.Recipient)
 		logger.Debug("[%s] %s", CallContract, err.Error())
-		return err, false
+		return fmt.Errorf("could not fetch storage for contract (%s).", action.Recipient), false
 	}
 
 	actualStorageJSON, err := MichelsonJSON.Print(storage, "", "  ")
 	if err != nil {
-		err = fmt.Errorf("failed to print actual contract storage to JSON")
 		logger.Debug("[%s] %s", AssertContractStorage, err.Error())
-		return err, false
+		return fmt.Errorf("failed to print actual contract storage to JSON"), false
 	}
 
 	return map[string]interface{}{
 		"storage": actualStorageJSON,
-	}, !action.ExpectFailure
+	}, true
 }
 
 func (action CallContractAction) validate() error {

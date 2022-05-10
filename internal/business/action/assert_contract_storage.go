@@ -66,6 +66,7 @@ func (action AssertContractStorageAction) Run(mockup business.Mockup) (result in
 		}
 	}()
 
+	// Get current storage (already normalized)
 	storage, err := mockup.GetContractStorage(action.ContractName)
 	if err != nil {
 		errMsg := fmt.Errorf("could not fetch storage for contract (%s)", action.ContractName)
@@ -109,6 +110,7 @@ func (action AssertContractStorageAction) Run(mockup business.Mockup) (result in
 	}, true
 }
 
+// validate validates the action fields before interpreting them
 func (action AssertContractStorageAction) validate() error {
 	missingFields := make([]string, 0)
 	if action.json.Payload.ContractName == "" {

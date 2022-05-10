@@ -516,7 +516,7 @@ func (m Mockup) GetContractStorage(contractName string) (ast.Node, error) {
 
 	ast, err := michelson.ParseMicheline(output)
 	if err != nil {
-		return nil, fmt.Errorf("could parse contract (%s) storage from 'micheline' format. %s", contractName, err)
+		return nil, fmt.Errorf("could not parse contract (%s) storage from 'micheline' format. %s", contractName, err)
 	}
 
 	return ast, nil

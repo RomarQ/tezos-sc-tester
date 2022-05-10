@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"blockwatch.cc/tzgo/tezos"
+	"github.com/romarq/visualtez-testing/internal/business/michelson"
+	"github.com/romarq/visualtez-testing/internal/business/michelson/ast"
 )
 
 // Contains verifies if a list contains a given element
@@ -55,4 +57,17 @@ func ParseRFC3339Timestamp(timestamp string) (time.Time, error) {
 // FormatRFC3339Timestamp format timestamp to RFC3339
 func FormatRFC3339Timestamp(timestamp time.Time) string {
 	return timestamp.Format(time.RFC3339)
+}
+
+// ExtractFailWithError extracts the Micheline value emitted
+// by (FAILWITH) instruction
+func ExtractFailWithError(output string) (ast.Node, error) {
+	pattern := regexp.MustCompile("script reached FAILWITH instruction\nwith (.*)\n")
+
+	match := pattern.FindStringSubmatch(output)
+	if len(match) < 2 {
+		return nil, fmt.Errorf("could not extract micheline from FAILWITH output.")
+	}
+
+	return michelson.ParseMicheline(match[1])
 }
