@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/romarq/visualtez-testing/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -53,7 +52,7 @@ func TestJSONOfMicheline(t *testing.T) {
 		j, err := JSONOfMicheline(string(michelineBytes))
 		assert.Nil(t, err, "Must not fail")
 
-		assert.Equal(t, utils.PrettifyJSON(j), utils.PrettifyJSON(json.RawMessage(jsonBytes)), "Decode JSON to Micheline")
+		assert.Equal(t, PrettifyJSON(j), PrettifyJSON(json.RawMessage(jsonBytes)), "Decode JSON to Micheline")
 	}
 
 	t.Run("Convert Micheline to JSON", func(t *testing.T) {
@@ -87,4 +86,10 @@ func saveSnapshot(fileName string, bytes []byte) {
 	wd, _ := os.Getwd()
 	filePath := path.Join(wd, "__test_data__", fileName)
 	os.WriteFile(filePath, bytes, 0644)
+}
+
+// PrettifyJSON
+func PrettifyJSON(o interface{}) string {
+	prettyJSON, _ := json.MarshalIndent(o, "", "  ")
+	return string(prettyJSON)
 }
