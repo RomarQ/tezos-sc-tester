@@ -3,7 +3,6 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http/httptest"
 	"os"
 	"path"
@@ -13,18 +12,10 @@ import (
 	"github.com/romarq/visualtez-testing/internal/business/action"
 	"github.com/romarq/visualtez-testing/internal/config"
 	"github.com/romarq/visualtez-testing/internal/logger"
-	"github.com/romarq/visualtez-testing/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
 
-// Utility for saving test snapshots
-func saveSnapshot(fileName string, bytes []byte) {
-	wd, _ := os.Getwd()
-	filePath := path.Join(wd, "__test_data__", fileName)
-	os.WriteFile(filePath, bytes, 0644)
-}
-
-func TestRunTest(t *testing.T) {
+func TestAPI(t *testing.T) {
 	const TESTING_URL = "/testing"
 
 	api := InitTestingAPI(config.Config{
@@ -67,126 +58,45 @@ func TestRunTest(t *testing.T) {
 		}
 	})
 
-	t.Run("Create Implicit Account",
-		func(t *testing.T) {
-			CreateImplicitAccountAction := map[string]interface{}{
-				"kind": action.CreateImplicitAccount,
-				"payload": map[string]interface{}{
-					"name":    "bob",
-					"balance": "10",
-				},
-			}
-			actions, _ := json.Marshal(
-				map[string]interface{}{
-					"actions": []map[string]interface{}{CreateImplicitAccountAction},
-				},
-			)
-			e := echo.New()
-			req := httptest.NewRequest(echo.POST, TESTING_URL, bytes.NewReader(actions))
-			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-			rec := httptest.NewRecorder()
+	t.Run("Run FA2 test actions", func(t *testing.T) {
+		request, err := getTestData("fa2_actions.json")
+		assert.Nil(t, err, "Must not fail")
 
-			ctx := e.NewContext(req, rec)
+		e := echo.New()
+		req := httptest.NewRequest(echo.POST, TESTING_URL, bytes.NewReader(request))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
 
-			err := api.RunTest(ctx)
-			assert.Nil(t, err, "Must not fail")
-			assert.Equal(t, rec.Code, 200)
+		ctx := e.NewContext(req, rec)
 
-			var result []action.ActionResult
-			assert.NoError(t, json.Unmarshal(rec.Body.Bytes(), &result), "Unmarshal should not fail")
-			assert.Len(t, result, 1, "Must only contain a single action result")
+		err = api.RunTest(ctx)
+		assert.Nil(t, err, "Must not fail")
+		assert.Equal(t, rec.Code, 200)
 
-			actionResult := result[0]
-			assert.Equal(t, actionResult.Status, action.Success, "Action status must be (success)")
-			assert.Equal(t, utils.PrettifyJSON(actionResult.Action), utils.PrettifyJSON(CreateImplicitAccountAction), "Validate action request")
-			assert.Contains(t, fmt.Sprintf("%v", actionResult.Result), "tz1", actionResult.Result)
-		})
+		var actionResponses []action.ActionResult
+		err = json.Unmarshal(rec.Body.Bytes(), &actionResponses)
+		assert.Nil(t, err, "Must not fail")
 
-	t.Run("Originate Contract",
-		func(t *testing.T) {
-			OriginateContractAction := map[string]interface{}{
-				"kind": action.OriginateContract,
-				"payload": map[string]interface{}{
-					"name":    "contract_1",
-					"balance": "10",
-					"code": json.RawMessage(`
-						[
-							{
-								"args": [
-									{
-										"prim": "unit"
-									}
-								],
-								"prim": "storage"
-							},
-							{
-								"args": [
-									{
-										"prim": "unit"
-									}
-								],
-								"prim": "parameter"
-							},
-							{
-								"args": [
-									[
-										{
-											"prim": "DROP"
-										},
-										{
-											"prim": "UNIT"
-										},
-										{
-											"args": [
-												{
-													"prim": "operation"
-												}
-											],
-											"prim": "NIL"
-										},
-										{
-											"prim": "PAIR"
-										}
-									]
-								],
-								"prim": "code"
-							}
-						]
-					`),
-					"storage": map[string]string{
-						"prim": "Unit",
-					},
-				},
-			}
-			actions, _ := json.Marshal(
-				map[string]interface{}{
-					"actions": []map[string]interface{}{OriginateContractAction},
-				},
-			)
-			e := echo.New()
-			req := httptest.NewRequest(echo.POST, TESTING_URL, bytes.NewReader(actions))
-			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-			rec := httptest.NewRecorder()
+		for _, response := range actionResponses {
+			assert.Equal(t, response.Status, action.Success, response.Result)
+		}
 
-			ctx := e.NewContext(req, rec)
+		snapshotBytes, err := json.MarshalIndent(actionResponses, "", "  ")
+		assert.Nil(t, err, "Must not fail")
 
-			err := api.RunTest(ctx)
-			assert.Nil(t, err, "Must not fail")
-			assert.Equal(t, rec.Code, 200)
-
-			var result []action.ActionResult
-			assert.NoError(t, json.Unmarshal(rec.Body.Bytes(), &result), "Unmarshal should not fail")
-			assert.Len(t, result, 1, "Must only contain a single action result")
-
-			actionResult := result[0]
-			assert.Equal(t, actionResult.Status, action.Success, "Action result must be (success)")
-			assert.Equal(t, utils.PrettifyJSON(actionResult.Action), utils.PrettifyJSON(OriginateContractAction), "Validate action request")
-			assert.Contains(t, fmt.Sprintf("%v", actionResult.Result), "KT1", actionResult.Result)
-		})
+		assert.NoError(t, saveSnapshot("fa2_actions_response.json", snapshotBytes))
+	})
 }
 
 func getTestData(fileName string) ([]byte, error) {
 	wd, _ := os.Getwd()
 	contract_file_path := path.Join(wd, "__test_data__", fileName)
 	return os.ReadFile(contract_file_path)
+}
+
+// Utility for saving test snapshots
+func saveSnapshot(fileName string, bytes []byte) error {
+	wd, _ := os.Getwd()
+	filePath := path.Join(wd, "__test_data__/snapshots", fileName)
+	return os.WriteFile(filePath, bytes, 0644)
 }
