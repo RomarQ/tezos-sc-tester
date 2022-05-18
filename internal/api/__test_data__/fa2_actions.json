@@ -2,20 +2,6 @@
     "protocol": "PtJakart2xVj7pYXJBXrqHgd82rdkLey5ZeeGwDgPp9rhQUbSqY",
     "actions": [
         {
-            "kind": "create_implicit_account",
-            "payload": {
-                "name": "bob_admin",
-                "balance": "1000000000"
-            }
-        },
-        {
-            "kind": "create_implicit_account",
-            "payload": {
-                "name": "alice",
-                "balance": "1000000000"
-            }
-        },
-        {
             "kind": "originate_contract",
             "payload": {
                 "name": "fa2_contract",
@@ -994,31 +980,6 @@
                                                                         ]
                                                                     },
                                                                     {
-                                                                        "prim": "SWAP"
-                                                                    },
-                                                                    {
-                                                                        "prim": "DUP"
-                                                                    },
-                                                                    {
-                                                                        "prim": "DUG",
-                                                                        "args": [
-                                                                            {
-                                                                                "int": "2"
-                                                                            }
-                                                                        ]
-                                                                    },
-                                                                    {
-                                                                        "prim": "DUP"
-                                                                    },
-                                                                    {
-                                                                        "prim": "GET",
-                                                                        "args": [
-                                                                            {
-                                                                                "int": "3"
-                                                                            }
-                                                                        ]
-                                                                    },
-                                                                    {
                                                                         "prim": "PUSH",
                                                                         "args": [
                                                                             {
@@ -1030,10 +991,10 @@
                                                                         ]
                                                                     },
                                                                     {
-                                                                        "prim": "DIG",
+                                                                        "prim": "DUP",
                                                                         "args": [
                                                                             {
-                                                                                "int": "4"
+                                                                                "int": "3"
                                                                             }
                                                                         ]
                                                                     },
@@ -1055,49 +1016,6 @@
                                                                     },
                                                                     {
                                                                         "prim": "ADD"
-                                                                    },
-                                                                    {
-                                                                        "prim": "UPDATE",
-                                                                        "args": [
-                                                                            {
-                                                                                "int": "8"
-                                                                            }
-                                                                        ]
-                                                                    },
-                                                                    {
-                                                                        "prim": "UPDATE",
-                                                                        "args": [
-                                                                            {
-                                                                                "int": "3"
-                                                                            }
-                                                                        ]
-                                                                    },
-                                                                    {
-                                                                        "prim": "DUP"
-                                                                    },
-                                                                    {
-                                                                        "prim": "DUG",
-                                                                        "args": [
-                                                                            {
-                                                                                "int": "2"
-                                                                            }
-                                                                        ]
-                                                                    },
-                                                                    {
-                                                                        "prim": "GET",
-                                                                        "args": [
-                                                                            {
-                                                                                "int": "3"
-                                                                            }
-                                                                        ]
-                                                                    },
-                                                                    {
-                                                                        "prim": "GET",
-                                                                        "args": [
-                                                                            {
-                                                                                "int": "8"
-                                                                            }
-                                                                        ]
                                                                     },
                                                                     {
                                                                         "prim": "SWAP"
@@ -1130,21 +1048,137 @@
                                                                     {
                                                                         "prim": "IF",
                                                                         "args": [
-                                                                            [],
                                                                             [
                                                                                 {
-                                                                                    "prim": "PUSH",
+                                                                                    "prim": "SWAP"
+                                                                                },
+                                                                                {
+                                                                                    "prim": "DUP"
+                                                                                },
+                                                                                {
+                                                                                    "prim": "GET",
                                                                                     "args": [
                                                                                         {
-                                                                                            "prim": "string"
-                                                                                        },
-                                                                                        {
-                                                                                            "string": "FA2__INVALID_TOKEN_ID"
+                                                                                            "int": "3"
                                                                                         }
                                                                                     ]
                                                                                 },
                                                                                 {
-                                                                                    "prim": "FAILWITH"
+                                                                                    "prim": "DUP",
+                                                                                    "args": [
+                                                                                        {
+                                                                                            "int": "3"
+                                                                                        }
+                                                                                    ]
+                                                                                },
+                                                                                {
+                                                                                    "prim": "GET",
+                                                                                    "args": [
+                                                                                        {
+                                                                                            "int": "5"
+                                                                                        }
+                                                                                    ]
+                                                                                },
+                                                                                {
+                                                                                    "prim": "UPDATE",
+                                                                                    "args": [
+                                                                                        {
+                                                                                            "int": "8"
+                                                                                        }
+                                                                                    ]
+                                                                                },
+                                                                                {
+                                                                                    "prim": "UPDATE",
+                                                                                    "args": [
+                                                                                        {
+                                                                                            "int": "3"
+                                                                                        }
+                                                                                    ]
+                                                                                },
+                                                                                {
+                                                                                    "prim": "SWAP"
+                                                                                }
+                                                                            ],
+                                                                            [
+                                                                                {
+                                                                                    "prim": "SWAP"
+                                                                                },
+                                                                                {
+                                                                                    "prim": "DUP"
+                                                                                },
+                                                                                {
+                                                                                    "prim": "DUG",
+                                                                                    "args": [
+                                                                                        {
+                                                                                            "int": "2"
+                                                                                        }
+                                                                                    ]
+                                                                                },
+                                                                                {
+                                                                                    "prim": "GET",
+                                                                                    "args": [
+                                                                                        {
+                                                                                            "int": "3"
+                                                                                        }
+                                                                                    ]
+                                                                                },
+                                                                                {
+                                                                                    "prim": "GET",
+                                                                                    "args": [
+                                                                                        {
+                                                                                            "int": "8"
+                                                                                        }
+                                                                                    ]
+                                                                                },
+                                                                                {
+                                                                                    "prim": "SWAP"
+                                                                                },
+                                                                                {
+                                                                                    "prim": "DUP"
+                                                                                },
+                                                                                {
+                                                                                    "prim": "DUG",
+                                                                                    "args": [
+                                                                                        {
+                                                                                            "int": "2"
+                                                                                        }
+                                                                                    ]
+                                                                                },
+                                                                                {
+                                                                                    "prim": "GET",
+                                                                                    "args": [
+                                                                                        {
+                                                                                            "int": "5"
+                                                                                        }
+                                                                                    ]
+                                                                                },
+                                                                                {
+                                                                                    "prim": "COMPARE"
+                                                                                },
+                                                                                {
+                                                                                    "prim": "EQ"
+                                                                                },
+                                                                                {
+                                                                                    "prim": "IF",
+                                                                                    "args": [
+                                                                                        [],
+                                                                                        [
+                                                                                            {
+                                                                                                "prim": "PUSH",
+                                                                                                "args": [
+                                                                                                    {
+                                                                                                        "prim": "string"
+                                                                                                    },
+                                                                                                    {
+                                                                                                        "string": "FA2__INVALID_TOKEN_ID"
+                                                                                                    }
+                                                                                                ]
+                                                                                            },
+                                                                                            {
+                                                                                                "prim": "FAILWITH"
+                                                                                            }
+                                                                                        ]
+                                                                                    ]
                                                                                 }
                                                                             ]
                                                                         ]
@@ -3946,7 +3980,7 @@
                             "prim": "Pair",
                             "args": [
                                 {
-                                    "string": "TEST__ADDRESS_OF_ACCOUNT__bob_admin"
+                                    "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap1"
                                 },
                                 {
                                     "prim": "False"
@@ -3994,14 +4028,59 @@
             "kind": "call_contract",
             "payload": {
                 "recipient": "fa2_contract",
-                "sender": "bob_admin",
+                "sender": "bootstrap2",
+                "entrypoint": "transfer",
+                "amount": "0",
+                "parameter": [
+                    {
+                        "prim": "Pair",
+                        "args": [
+                            {
+                                "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap2"
+                            },
+                            [
+                                {
+                                    "prim": "Pair",
+                                    "args": [
+                                        {
+                                            "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap1"
+                                        },
+                                        {
+                                            "prim": "Pair",
+                                            "args": [
+                                                {
+                                                    "int": "1"
+                                                },
+                                                {
+                                                    "int": "10"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        ]
+                    }
+                ],
+                "expect_failwith": {
+                    "string": "FA2__TOKEN_UNDEFINED"
+                },
+                "timestamp": "1970-01-01T00:00:00Z",
+                "level": 1
+            }
+        },
+        {
+            "kind": "call_contract",
+            "payload": {
+                "recipient": "fa2_contract",
+                "sender": "bootstrap1",
                 "entrypoint": "mint",
                 "amount": "0",
                 "parameter": {
                     "prim": "Pair",
                     "args": [
                         {
-                            "string": "TEST__ADDRESS_OF_ACCOUNT__bob_admin"
+                            "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap2"
                         },
                         {
                             "prim": "Pair",
@@ -4036,6 +4115,736 @@
                 },
                 "timestamp": "1970-01-01T00:00:00Z",
                 "level": 1
+            }
+        },
+        {
+            "kind": "assert_contract_storage",
+            "payload": {
+                "contract_name": "fa2_contract",
+                "storage": {
+                    "prim": "Pair",
+                    "args": [
+                        {
+                            "prim": "Pair",
+                            "args": [
+                                {
+                                    "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap1"
+                                },
+                                {
+                                    "prim": "False"
+                                }
+                            ]
+                        },
+                        {
+                            "prim": "Pair",
+                            "args": [
+                                {
+                                    "prim": "Pair",
+                                    "args": [
+                                        [
+                                            {
+                                                "prim": "Elt",
+                                                "args": [
+                                                    {
+                                                        "prim": "Pair",
+                                                        "args": [
+                                                            {
+                                                                "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap2"
+                                                            },
+                                                            {
+                                                                "int": "1"
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "int": "100000000"
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        {
+                                            "prim": "Pair",
+                                            "args": [
+                                                [],
+                                                {
+                                                    "prim": "Pair",
+                                                    "args": [
+                                                        [
+                                                            {
+                                                                "prim": "Elt",
+                                                                "args": [
+                                                                    {
+                                                                        "int": "1"
+                                                                    },
+                                                                    {
+                                                                        "prim": "Pair",
+                                                                        "args": [
+                                                                            {
+                                                                                "int": "1"
+                                                                            },
+                                                                            [
+                                                                                {
+                                                                                    "prim": "Elt",
+                                                                                    "args": [
+                                                                                        {
+                                                                                            "string": ""
+                                                                                        },
+                                                                                        {
+                                                                                            "bytes": "00"
+                                                                                        }
+                                                                                    ]
+                                                                                }
+                                                                            ]
+                                                                        ]
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ],
+                                                        {
+                                                            "prim": "Pair",
+                                                            "args": [
+                                                                [
+                                                                    {
+                                                                        "prim": "Elt",
+                                                                        "args": [
+                                                                            {
+                                                                                "int": "1"
+                                                                            },
+                                                                            {
+                                                                                "int": "100000000"
+                                                                            }
+                                                                        ]
+                                                                    }
+                                                                ],
+                                                                {
+                                                                    "int": "1"
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                []
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "kind": "call_contract",
+            "payload": {
+                "recipient": "fa2_contract",
+                "sender": "bootstrap2",
+                "entrypoint": "transfer",
+                "amount": "0",
+                "parameter": [
+                    {
+                        "prim": "Pair",
+                        "args": [
+                            {
+                                "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap2"
+                            },
+                            [
+                                {
+                                    "prim": "Pair",
+                                    "args": [
+                                        {
+                                            "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap1"
+                                        },
+                                        {
+                                            "prim": "Pair",
+                                            "args": [
+                                                {
+                                                    "int": "1"
+                                                },
+                                                {
+                                                    "int": "10"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        ]
+                    }
+                ],
+                "timestamp": "1970-01-01T00:00:00Z",
+                "level": 1
+            }
+        },
+        {
+            "kind": "assert_contract_storage",
+            "payload": {
+                "contract_name": "fa2_contract",
+                "storage": {
+                    "prim": "Pair",
+                    "args": [
+                        {
+                            "prim": "Pair",
+                            "args": [
+                                {
+                                    "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap1"
+                                },
+                                {
+                                    "prim": "False"
+                                }
+                            ]
+                        },
+                        {
+                            "prim": "Pair",
+                            "args": [
+                                {
+                                    "prim": "Pair",
+                                    "args": [
+                                        [
+                                            {
+                                                "prim": "Elt",
+                                                "args": [
+                                                    {
+                                                        "prim": "Pair",
+                                                        "args": [
+                                                            {
+                                                                "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap1"
+                                                            },
+                                                            {
+                                                                "int": "1"
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "int": "10"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "prim": "Elt",
+                                                "args": [
+                                                    {
+                                                        "prim": "Pair",
+                                                        "args": [
+                                                            {
+                                                                "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap2"
+                                                            },
+                                                            {
+                                                                "int": "1"
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "int": "99999990"
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        {
+                                            "prim": "Pair",
+                                            "args": [
+                                                [],
+                                                {
+                                                    "prim": "Pair",
+                                                    "args": [
+                                                        [
+                                                            {
+                                                                "prim": "Elt",
+                                                                "args": [
+                                                                    {
+                                                                        "int": "1"
+                                                                    },
+                                                                    {
+                                                                        "prim": "Pair",
+                                                                        "args": [
+                                                                            {
+                                                                                "int": "1"
+                                                                            },
+                                                                            [
+                                                                                {
+                                                                                    "prim": "Elt",
+                                                                                    "args": [
+                                                                                        {
+                                                                                            "string": ""
+                                                                                        },
+                                                                                        {
+                                                                                            "bytes": "00"
+                                                                                        }
+                                                                                    ]
+                                                                                }
+                                                                            ]
+                                                                        ]
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ],
+                                                        {
+                                                            "prim": "Pair",
+                                                            "args": [
+                                                                [
+                                                                    {
+                                                                        "prim": "Elt",
+                                                                        "args": [
+                                                                            {
+                                                                                "int": "1"
+                                                                            },
+                                                                            {
+                                                                                "int": "100000000"
+                                                                            }
+                                                                        ]
+                                                                    }
+                                                                ],
+                                                                {
+                                                                    "int": "1"
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                []
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "kind": "call_contract",
+            "payload": {
+                "recipient": "fa2_contract",
+                "sender": "bootstrap1",
+                "entrypoint": "mint",
+                "amount": "0",
+                "parameter": {
+                    "prim": "Pair",
+                    "args": [
+                        {
+                            "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap2"
+                        },
+                        {
+                            "prim": "Pair",
+                            "args": [
+                                {
+                                    "int": "10"
+                                },
+                                {
+                                    "prim": "Pair",
+                                    "args": [
+                                        {
+                                            "int": "1"
+                                        },
+                                        []
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "timestamp": "1970-01-01T00:00:00Z",
+                "level": 1
+            }
+        },
+        {
+            "kind": "call_contract",
+            "payload": {
+                "recipient": "fa2_contract",
+                "sender": "bootstrap1",
+                "entrypoint": "update_administrator",
+                "amount": "0",
+                "parameter": {
+                    "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap2"
+                },
+                "timestamp": "1970-01-01T00:00:00Z",
+                "level": 1
+            }
+        },
+        {
+            "kind": "call_contract",
+            "payload": {
+                "recipient": "fa2_contract",
+                "sender": "bootstrap2",
+                "entrypoint": "update_metadata",
+                "amount": "0",
+                "parameter": [
+                    {
+                        "prim": "Elt",
+                        "args": [
+                            {
+                                "string": ""
+                            },
+                            {
+                                "bytes": "00"
+                            }
+                        ]
+                    }
+                ],
+                "timestamp": "1970-01-01T00:00:00Z",
+                "level": 1
+            }
+        },
+        {
+            "kind": "assert_contract_storage",
+            "payload": {
+                "contract_name": "fa2_contract",
+                "storage": {
+                    "prim": "Pair",
+                    "args": [
+                        {
+                            "prim": "Pair",
+                            "args": [
+                                {
+                                    "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap2"
+                                },
+                                {
+                                    "prim": "False"
+                                }
+                            ]
+                        },
+                        {
+                            "prim": "Pair",
+                            "args": [
+                                {
+                                    "prim": "Pair",
+                                    "args": [
+                                        [
+                                            {
+                                                "prim": "Elt",
+                                                "args": [
+                                                    {
+                                                        "prim": "Pair",
+                                                        "args": [
+                                                            {
+                                                                "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap1"
+                                                            },
+                                                            {
+                                                                "int": "1"
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "int": "10"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "prim": "Elt",
+                                                "args": [
+                                                    {
+                                                        "prim": "Pair",
+                                                        "args": [
+                                                            {
+                                                                "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap2"
+                                                            },
+                                                            {
+                                                                "int": "1"
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "int": "100000000"
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        {
+                                            "prim": "Pair",
+                                            "args": [
+                                                [],
+                                                {
+                                                    "prim": "Pair",
+                                                    "args": [
+                                                        [
+                                                            {
+                                                                "prim": "Elt",
+                                                                "args": [
+                                                                    {
+                                                                        "int": "1"
+                                                                    },
+                                                                    {
+                                                                        "prim": "Pair",
+                                                                        "args": [
+                                                                            {
+                                                                                "int": "1"
+                                                                            },
+                                                                            [
+                                                                                {
+                                                                                    "prim": "Elt",
+                                                                                    "args": [
+                                                                                        {
+                                                                                            "string": ""
+                                                                                        },
+                                                                                        {
+                                                                                            "bytes": "00"
+                                                                                        }
+                                                                                    ]
+                                                                                }
+                                                                            ]
+                                                                        ]
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ],
+                                                        {
+                                                            "prim": "Pair",
+                                                            "args": [
+                                                                [
+                                                                    {
+                                                                        "prim": "Elt",
+                                                                        "args": [
+                                                                            {
+                                                                                "int": "1"
+                                                                            },
+                                                                            {
+                                                                                "int": "100000010"
+                                                                            }
+                                                                        ]
+                                                                    }
+                                                                ],
+                                                                {
+                                                                    "int": "1"
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                [
+                                    {
+                                        "prim": "Elt",
+                                        "args": [
+                                            {
+                                                "string": ""
+                                            },
+                                            {
+                                                "bytes": "00"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "kind": "call_contract",
+            "payload": {
+                "recipient": "fa2_contract",
+                "sender": "bootstrap1",
+                "entrypoint": "update_operators",
+                "amount": "0",
+                "parameter": [
+                    {
+                        "prim": "Left",
+                        "args": [
+                            {
+                                "prim": "Pair",
+                                "args": [
+                                    {
+                                        "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap1"
+                                    },
+                                    {
+                                        "prim": "Pair",
+                                        "args": [
+                                            {
+                                                "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap2"
+                                            },
+                                            {
+                                                "int": "1"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "timestamp": "1970-01-01T00:00:00Z",
+                "level": 1
+            }
+        },
+        {
+            "kind": "assert_contract_storage",
+            "payload": {
+                "contract_name": "fa2_contract",
+                "storage": {
+                    "prim": "Pair",
+                    "args": [
+                        {
+                            "prim": "Pair",
+                            "args": [
+                                {
+                                    "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap2"
+                                },
+                                {
+                                    "prim": "False"
+                                }
+                            ]
+                        },
+                        {
+                            "prim": "Pair",
+                            "args": [
+                                {
+                                    "prim": "Pair",
+                                    "args": [
+                                        [
+                                            {
+                                                "prim": "Elt",
+                                                "args": [
+                                                    {
+                                                        "prim": "Pair",
+                                                        "args": [
+                                                            {
+                                                                "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap1"
+                                                            },
+                                                            {
+                                                                "int": "1"
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "int": "10"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "prim": "Elt",
+                                                "args": [
+                                                    {
+                                                        "prim": "Pair",
+                                                        "args": [
+                                                            {
+                                                                "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap2"
+                                                            },
+                                                            {
+                                                                "int": "1"
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "int": "100000000"
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        {
+                                            "prim": "Pair",
+                                            "args": [
+                                                [
+                                                    {
+                                                        "prim": "Elt",
+                                                        "args": [
+                                                            {
+                                                                "prim": "Pair",
+                                                                "args": [
+                                                                    {
+                                                                        "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap1"
+                                                                    },
+                                                                    {
+                                                                        "prim": "Pair",
+                                                                        "args": [
+                                                                            {
+                                                                                "string": "TEST__ADDRESS_OF_ACCOUNT__bootstrap2"
+                                                                            },
+                                                                            {
+                                                                                "int": "1"
+                                                                            }
+                                                                        ]
+                                                                    }
+                                                                ]
+                                                            },
+                                                            {
+                                                                "prim": "Unit"
+                                                            }
+                                                        ]
+                                                    }
+                                                ],
+                                                {
+                                                    "prim": "Pair",
+                                                    "args": [
+                                                        [
+                                                            {
+                                                                "prim": "Elt",
+                                                                "args": [
+                                                                    {
+                                                                        "int": "1"
+                                                                    },
+                                                                    {
+                                                                        "prim": "Pair",
+                                                                        "args": [
+                                                                            {
+                                                                                "int": "1"
+                                                                            },
+                                                                            [
+                                                                                {
+                                                                                    "prim": "Elt",
+                                                                                    "args": [
+                                                                                        {
+                                                                                            "string": ""
+                                                                                        },
+                                                                                        {
+                                                                                            "bytes": "00"
+                                                                                        }
+                                                                                    ]
+                                                                                }
+                                                                            ]
+                                                                        ]
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ],
+                                                        {
+                                                            "prim": "Pair",
+                                                            "args": [
+                                                                [
+                                                                    {
+                                                                        "prim": "Elt",
+                                                                        "args": [
+                                                                            {
+                                                                                "int": "1"
+                                                                            },
+                                                                            {
+                                                                                "int": "100000010"
+                                                                            }
+                                                                        ]
+                                                                    }
+                                                                ],
+                                                                {
+                                                                    "int": "1"
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                [
+                                    {
+                                        "prim": "Elt",
+                                        "args": [
+                                            {
+                                                "string": ""
+                                            },
+                                            {
+                                                "bytes": "00"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            ]
+                        }
+                    ]
+                }
             }
         }
     ]

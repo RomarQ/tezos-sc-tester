@@ -173,6 +173,9 @@ func (p *Parser) parseSequence() ast.Sequence {
 	end := p.expect(token.Close_brace)
 	defer p.next() // Consume next token
 
+	// TODO: Sort sequences of comparable values
+	// Michelson enforces maps and sets to be sorted
+
 	return ast.Sequence{
 		Position: ast.Position{
 			Pos: begin,
