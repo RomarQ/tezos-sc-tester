@@ -12,9 +12,8 @@ import (
 )
 
 type CreateImplicitAccountAction struct {
-	raw  json.RawMessage
 	json struct {
-		Kind    string `json:"kind"`
+		Kind    ActionKind `json:"kind"`
 		Payload struct {
 			Name    string `json:"name"`
 			Balance string `json:"balance"`
@@ -25,8 +24,9 @@ type CreateImplicitAccountAction struct {
 }
 
 // Unmarshal action
-func (action *CreateImplicitAccountAction) Unmarshal() error {
-	err := json.Unmarshal(action.raw, &action.json)
+func (action *CreateImplicitAccountAction) Unmarshal(ac Action) error {
+	action.json.Kind = ac.Kind
+	err := json.Unmarshal(ac.Payload, &action.json.Payload)
 	if err != nil {
 		return err
 	}
@@ -49,8 +49,8 @@ func (action *CreateImplicitAccountAction) Unmarshal() error {
 }
 
 // Marshal returns the JSON of the action (cached)
-func (a CreateImplicitAccountAction) Marshal() json.RawMessage {
-	return a.raw
+func (action CreateImplicitAccountAction) Action() interface{} {
+	return action.json
 }
 
 // Perform action (Creates an implicit account)

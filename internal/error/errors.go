@@ -8,7 +8,7 @@ import (
 type Error struct {
 	Code    int         `json:"code" example:"409"`
 	Message string      `json:"message" example:"Some Error"`
-	Details interface{} `json:"details,omitempty" example:"[]"`
+	Details interface{} `json:"details,omitempty"`
 }
 
 // HTTPError Construct an HTTP error

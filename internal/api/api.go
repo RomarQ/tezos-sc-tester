@@ -20,8 +20,8 @@ type TestingAPI struct {
 }
 
 type testSuiteRequest struct {
-	Protocol string            `json:"protocol"`
-	Actions  []json.RawMessage `json:"actions"`
+	Protocol string          `json:"protocol"`
+	Actions  []action.Action `json:"actions"`
 }
 
 // InitTestingAPI initializes the testing API
@@ -32,14 +32,15 @@ func InitTestingAPI(config config.Config) TestingAPI {
 	return api
 }
 
-// RunTest - Run a test (`/testing`)
-// @ID post-testing
-// @Description Run test actions
-// @Consumes json
-// @Produce json
-// @Success 200
-// @Failure default {object} Error
-// @Router /testing [post]
+// RunTest - Run a test (`/testing`) godoc
+// @Summary  Run a test
+// @ID       post-testing
+// @Accept   json
+// @Produce  json
+// @Param    request  body      testSuiteRequest     true  "Test Request"
+// @Success  200      {array}   action.ActionResult  "Success"
+// @Failure  409      {object}  Error.Error          "Fail"
+// @Router   /testing [post]
 func (api *TestingAPI) RunTest(ctx echo.Context) error {
 	var mockup Mockup.Mockup
 	defer func() {

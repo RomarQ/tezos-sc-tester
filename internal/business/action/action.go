@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/tidwall/gjson"
-
 	"github.com/romarq/visualtez-testing/internal/business"
 	Error "github.com/romarq/visualtez-testing/internal/error"
 )
@@ -20,13 +18,13 @@ type (
 		Result interface{}  `json:"result,omitempty"`
 	}
 	Action struct {
-		Kind    ActionKind  `json:"kind"`
-		Payload interface{} `json:"payload"`
+		Kind    ActionKind      `json:"kind"`
+		Payload json.RawMessage `json:"payload"`
 	}
 	IAction interface {
 		Run(mockup business.Mockup) (interface{}, bool)
-		Unmarshal() error
-		Marshal() json.RawMessage
+		Unmarshal(action Action) error
+		Action() interface{}
 	}
 )
 
@@ -41,46 +39,31 @@ const (
 )
 
 // GetActions unmarshal test actions
-func GetActions(rawActions []json.RawMessage) ([]IAction, error) {
+func GetActions(rawActions []Action) ([]IAction, error) {
 	actions := make([]IAction, 0)
 	for _, rawAction := range rawActions {
 		var action IAction
 
-		kind := gjson.GetBytes(rawAction, "kind")
-		switch kind.String() {
+		switch rawAction.Kind {
 		default:
-			return nil, fmt.Errorf("Unexpected action kind (%s).", kind)
-		case string(AssertAccountBalance):
-			action = &AssertAccountBalanceAction{
-				raw: rawAction,
-			}
-		case string(AssertContractStorage):
-			action = &AssertContractStorageAction{
-				raw: rawAction,
-			}
-		case string(CallContract):
-			action = &CallContractAction{
-				raw: rawAction,
-			}
-		case string(OriginateContract):
-			action = &OriginateContractAction{
-				raw: rawAction,
-			}
-		case string(CreateImplicitAccount):
-			action = &CreateImplicitAccountAction{
-				raw: rawAction,
-			}
-		case string(ModifyChainID):
-			action = &ModifyChainIdAction{
-				raw: rawAction,
-			}
-		case string(PackData):
-			action = &PackDataAction{
-				raw: rawAction,
-			}
+			return nil, fmt.Errorf("Unexpected action kind (%s).", rawAction.Kind)
+		case AssertAccountBalance:
+			action = &AssertAccountBalanceAction{}
+		case AssertContractStorage:
+			action = &AssertContractStorageAction{}
+		case CallContract:
+			action = &CallContractAction{}
+		case OriginateContract:
+			action = &OriginateContractAction{}
+		case CreateImplicitAccount:
+			action = &CreateImplicitAccountAction{}
+		case ModifyChainID:
+			action = &ModifyChainIdAction{}
+		case PackData:
+			action = &PackDataAction{}
 		}
 
-		if err := action.Unmarshal(); err != nil {
+		if err := action.Unmarshal(rawAction); err != nil {
 			return nil, Error.DetailedHttpError(http.StatusBadRequest, err.Error(), rawAction)
 		}
 		actions = append(actions, action)
@@ -131,9 +114,10 @@ func buildResult(status ActionStatus, result interface{}, action IAction) Action
 			"details": v.Error(),
 		}
 	}
+
 	return ActionResult{
 		Status: status,
-		Action: action.Marshal(),
+		Action: action.Action(),
 		Result: result,
 	}
 }

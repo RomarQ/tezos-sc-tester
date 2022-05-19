@@ -10,9 +10,8 @@ import (
 )
 
 type ModifyChainIdAction struct {
-	raw  json.RawMessage
 	json struct {
-		Kind    string `json:"kind"`
+		Kind    ActionKind `json:"kind"`
 		Payload struct {
 			ChainID string `json:"chain_id"`
 		} `json:"payload"`
@@ -21,8 +20,9 @@ type ModifyChainIdAction struct {
 }
 
 // Unmarshal action
-func (action *ModifyChainIdAction) Unmarshal() error {
-	err := json.Unmarshal(action.raw, &action.json)
+func (action *ModifyChainIdAction) Unmarshal(ac Action) error {
+	action.json.Kind = ac.Kind
+	err := json.Unmarshal(ac.Payload, &action.json.Payload)
 	if err != nil {
 		return err
 	}
@@ -39,8 +39,8 @@ func (action *ModifyChainIdAction) Unmarshal() error {
 }
 
 // Marshal returns the JSON of the action (cached)
-func (action ModifyChainIdAction) Marshal() json.RawMessage {
-	return action.raw
+func (action ModifyChainIdAction) Action() interface{} {
+	return action.json
 }
 
 // Perform the action

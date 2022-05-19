@@ -14,9 +14,8 @@ import (
 )
 
 type OriginateContractAction struct {
-	raw  json.RawMessage
 	json struct {
-		Kind    string `json:"kind"`
+		Kind    ActionKind `json:"kind"`
 		Payload struct {
 			Name    string          `json:"name"`
 			Balance string          `json:"balance"`
@@ -31,8 +30,9 @@ type OriginateContractAction struct {
 }
 
 // Unmarshal action
-func (action *OriginateContractAction) Unmarshal() error {
-	err := json.Unmarshal(action.raw, &action.json)
+func (action *OriginateContractAction) Unmarshal(ac Action) error {
+	action.json.Kind = ac.Kind
+	err := json.Unmarshal(ac.Payload, &action.json.Payload)
 	if err != nil {
 		return err
 	}
@@ -69,8 +69,8 @@ func (action *OriginateContractAction) Unmarshal() error {
 }
 
 // Marshal returns the JSON of the action (cached)
-func (a OriginateContractAction) Marshal() json.RawMessage {
-	return a.raw
+func (action OriginateContractAction) Action() interface{} {
+	return action.json
 }
 
 // Run performs action (Originates a contract)

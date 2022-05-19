@@ -13,9 +13,8 @@ import (
 )
 
 type PackDataAction struct {
-	raw  json.RawMessage
 	json struct {
-		Kind    string `json:"kind"`
+		Kind    ActionKind `json:"kind"`
 		Payload struct {
 			Data json.RawMessage `json:"data"`
 			Type json.RawMessage `json:"type"`
@@ -26,8 +25,9 @@ type PackDataAction struct {
 }
 
 // Unmarshal action
-func (action *PackDataAction) Unmarshal() error {
-	err := json.Unmarshal(action.raw, &action.json)
+func (action *PackDataAction) Unmarshal(ac Action) error {
+	action.json.Kind = ac.Kind
+	err := json.Unmarshal(ac.Payload, &action.json.Payload)
 	if err != nil {
 		return err
 	}
@@ -55,8 +55,8 @@ func (action *PackDataAction) Unmarshal() error {
 }
 
 // Marshal returns the JSON of the action (cached)
-func (action PackDataAction) Marshal() json.RawMessage {
-	return action.raw
+func (action PackDataAction) Action() interface{} {
+	return action.json
 }
 
 // Run performs action (Serializes a michelson value)

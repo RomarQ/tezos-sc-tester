@@ -21,22 +21,23 @@ func TestUnmarshal_OriginateContractAction(t *testing.T) {
 			storage := json.RawMessage(`
 				{ "prim": "Unit" }
 			`)
-			rawJson, err := json.MarshalIndent(
+			payload, err := json.MarshalIndent(
 				map[string]interface{}{
-					"kind": OriginateContract,
-					"payload": map[string]interface{}{
-						"name":    "contract_1",
-						"balance": "10",
-						"code":    code,
-						"storage": storage,
-					},
+					"name":    "contract_1",
+					"balance": "10",
+					"code":    code,
+					"storage": storage,
 				},
 				"",
 				"",
 			)
 			assert.Nil(t, err)
-			action := OriginateContractAction{raw: rawJson}
-			err = action.Unmarshal()
+			rawAction := Action{
+				Kind:    OriginateContract,
+				Payload: payload,
+			}
+			action := OriginateContractAction{}
+			err = action.Unmarshal(rawAction)
 			assert.Nil(t, err, "Must not fail")
 			assert.Equal(
 				t,
@@ -67,28 +68,27 @@ func TestUnmarshal_OriginateContractAction(t *testing.T) {
 		})
 	t.Run("Test OriginateContractAction Unmarshal (Invalid name)",
 		func(t *testing.T) {
-			rawJson, err := json.MarshalIndent(
-				map[string]interface{}{
-					"kind": OriginateContract,
-					"payload": map[string]interface{}{
+			rawAction := Action{
+				Kind: OriginateContract,
+				Payload: json.RawMessage(`
+					{
 						"name":    "contract 1",
-						"balance": "10",
-					},
-				},
-				"",
-				"",
-			)
-			assert.Nil(t, err)
-			action := OriginateContractAction{raw: rawJson}
-			err = action.Unmarshal()
+						"balance": "10"
+					}
+				`),
+			}
+			action := OriginateContractAction{}
+			err := action.Unmarshal(rawAction)
 			assert.NotNil(t, err, "Must fail (name is invalid)")
 			assert.Equal(t, err.Error(), "String (contract 1) does not match pattern '^[a-zA-Z0-9_]+$'.", "Assert error message")
 		})
 	t.Run("Test OriginateContractAction Unmarshal (Missing fields)",
 		func(t *testing.T) {
-			rawJson := json.RawMessage(`{}`)
-			action := OriginateContractAction{raw: rawJson}
-			err := action.Unmarshal()
+			action := OriginateContractAction{}
+			err := action.Unmarshal(Action{
+				Kind:    OriginateContract,
+				Payload: json.RawMessage(`{}`),
+			})
 			assert.NotNil(t, err, "Must fail (Missing fields)")
 			assert.Equal(t, err.Error(), "Action of kind (originate_contract) misses the following fields [name, code, storage].", "Assert error message")
 		})

@@ -16,9 +16,8 @@ import (
 )
 
 type CallContractAction struct {
-	raw  json.RawMessage
 	json struct {
-		Kind    string `json:"kind"`
+		Kind    ActionKind `json:"kind"`
 		Payload struct {
 			Recipient      string          `json:"recipient"`
 			Sender         string          `json:"sender"`
@@ -27,7 +26,7 @@ type CallContractAction struct {
 			Entrypoint     string          `json:"entrypoint"`
 			Amount         string          `json:"amount"`
 			Parameter      json.RawMessage `json:"parameter"`
-			ExpectFailwith json.RawMessage `json:"expect_failwith"`
+			ExpectFailwith json.RawMessage `json:"expect_failwith,omitempty"`
 		} `json:"payload"`
 	}
 	Recipient      string
@@ -41,8 +40,9 @@ type CallContractAction struct {
 }
 
 // Unmarshal action
-func (action *CallContractAction) Unmarshal() error {
-	err := json.Unmarshal(action.raw, &action.json)
+func (action *CallContractAction) Unmarshal(ac Action) error {
+	action.json.Kind = ac.Kind
+	err := json.Unmarshal(ac.Payload, &action.json.Payload)
 	if err != nil {
 		return err
 	}
@@ -98,8 +98,8 @@ func (action *CallContractAction) Unmarshal() error {
 }
 
 // Marshal returns the JSON of the action (cached)
-func (a CallContractAction) Marshal() json.RawMessage {
-	return a.raw
+func (action CallContractAction) Action() interface{} {
+	return action.json
 }
 
 // Perform the action

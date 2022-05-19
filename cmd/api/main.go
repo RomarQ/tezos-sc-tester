@@ -22,10 +22,10 @@ import (
 var VERSION = "" // Updated with "-ldflags" during build
 
 // Initialize REST API
-// @title Visualtez Testing API
-// @version 1.0
-// @description API documentation
-// @BasePath /
+// @title        Visualtez Testing API
+// @version      1.0
+// @description  API documentation
+// @BasePath     /
 func main() {
 	configuration := config.GetConfig()
 	logger.SetupLogger(configuration.Log.Location, configuration.Log.Level)

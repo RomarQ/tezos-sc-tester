@@ -10,9 +10,8 @@ import (
 )
 
 type AssertAccountBalanceAction struct {
-	raw  json.RawMessage
 	json struct {
-		Kind    string `json:"kind"`
+		Kind    ActionKind `json:"kind"`
 		Payload struct {
 			AccountName string `json:"account_name"`
 			Balance     string `json:"balance"`
@@ -23,8 +22,9 @@ type AssertAccountBalanceAction struct {
 }
 
 // Unmarshal action
-func (action *AssertAccountBalanceAction) Unmarshal() error {
-	err := json.Unmarshal(action.raw, &action.json)
+func (action *AssertAccountBalanceAction) Unmarshal(ac Action) error {
+	action.json.Kind = ac.Kind
+	err := json.Unmarshal(ac.Payload, &action.json.Payload)
 	if err != nil {
 		return err
 	}
@@ -47,8 +47,8 @@ func (action *AssertAccountBalanceAction) Unmarshal() error {
 }
 
 // Marshal returns the JSON of the action (cached)
-func (action AssertAccountBalanceAction) Marshal() json.RawMessage {
-	return action.raw
+func (action AssertAccountBalanceAction) Action() interface{} {
+	return action.json
 }
 
 // Perform the action

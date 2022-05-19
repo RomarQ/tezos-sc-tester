@@ -12,16 +12,16 @@ import (
 func TestGetActions(t *testing.T) {
 	t.Run("Test GetActions (No errors)",
 		func(t *testing.T) {
-			rawActions := []json.RawMessage{
-				json.RawMessage(`
-					{
-						"kind": "create_implicit_account",
-						"payload": {
+			rawActions := []Action{
+				{
+					Kind: CreateImplicitAccount,
+					Payload: json.RawMessage(`
+						{
 							"name": "alice",
 							"balance": "10"
 						}
-					}
-				`),
+					`),
+				},
 			}
 			actions, err := GetActions(rawActions)
 			assert.Nil(t, err, "Must not fail")
@@ -34,21 +34,19 @@ func TestGetActions(t *testing.T) {
 		})
 	t.Run("Test GetActions (With errors)",
 		func(t *testing.T) {
-			rawActions := []json.RawMessage{
-				json.RawMessage(`
-					{
-						"kind": "create_implicit_account",
-						"payload": {
+			rawActions := []Action{
+				{
+					Kind: CreateImplicitAccount,
+					Payload: json.RawMessage(`
+						{
 							"name": "alice",
 							"balance": "10"
 						}
-					}
-				`),
-				json.RawMessage(`
-					{
-						"kind": "THIS_ACTION_DOES_NOT_EXIST"
-					}
-				`),
+					`),
+				},
+				{
+					Kind: "THIS_ACTION_DOES_NOT_EXIST",
+				},
 			}
 			actions, err := GetActions(rawActions)
 			assert.Equal(t, "Unexpected action kind (THIS_ACTION_DOES_NOT_EXIST).", err.Error(), "Must fail")
@@ -82,12 +80,12 @@ func TestApplyActions(t *testing.T) {
 				[]ActionResult{
 					{
 						Status: Success,
-						Action: action_createImplicitAccount_alice.raw,
+						Action: action_createImplicitAccount_alice.Action(),
 						Result: map[string]interface{}{},
 					},
 					{
 						Status: Failure,
-						Action: action_createImplicitAccount_bob.raw,
+						Action: action_createImplicitAccount_bob.Action(),
 						Result: map[string]interface{}{
 							"details": "ERROR",
 						},
