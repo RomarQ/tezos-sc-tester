@@ -10,19 +10,39 @@
     "paths": {
         "/testing": {
             "post": {
-                "description": "Run a test",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
-                "operationId": "get-run-a-test",
+                "summary": "Run a test",
+                "operationId": "post-testing",
+                "parameters": [
+                    {
+                        "description": "Test Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.testSuiteRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": ""
-                    },
-                    "default": {
-                        "description": "",
+                        "description": "Success",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/action.ActionResult"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Fail",
+                        "schema": {
+                            "$ref": "#/definitions/error.Error"
                         }
                     }
                 }
@@ -30,13 +50,52 @@
         }
     },
     "definitions": {
-        "api.Error": {
+        "action.Action": {
+            "type": "object",
+            "properties": {
+                "kind": {
+                    "type": "string"
+                },
+                "payload": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "action.ActionResult": {
+            "type": "object",
+            "properties": {
+                "action": {},
+                "result": {},
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.testSuiteRequest": {
+            "type": "object",
+            "properties": {
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/action.Action"
+                    }
+                },
+                "protocol": {
+                    "type": "string"
+                }
+            }
+        },
+        "error.Error": {
             "type": "object",
             "properties": {
                 "code": {
                     "type": "integer",
                     "example": 409
                 },
+                "details": {},
                 "message": {
                     "type": "string",
                     "example": "Some Error"

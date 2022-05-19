@@ -1,10 +1,36 @@
 basePath: /
 definitions:
-  api.Error:
+  action.Action:
+    properties:
+      kind:
+        type: string
+      payload:
+        items:
+          type: integer
+        type: array
+    type: object
+  action.ActionResult:
+    properties:
+      action: {}
+      result: {}
+      status:
+        type: string
+    type: object
+  api.testSuiteRequest:
+    properties:
+      actions:
+        items:
+          $ref: '#/definitions/action.Action'
+        type: array
+      protocol:
+        type: string
+    type: object
+  error.Error:
     properties:
       code:
         example: 409
         type: integer
+      details: {}
       message:
         example: Some Error
         type: string
@@ -17,15 +43,28 @@ info:
 paths:
   /testing:
     post:
-      description: Run a test
-      operationId: get-run-a-test
+      consumes:
+      - application/json
+      operationId: post-testing
+      parameters:
+      - description: Test Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.testSuiteRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: ""
-        default:
-          description: ""
+          description: Success
           schema:
-            $ref: '#/definitions/api.Error'
+            items:
+              $ref: '#/definitions/action.ActionResult'
+            type: array
+        "409":
+          description: Fail
+          schema:
+            $ref: '#/definitions/error.Error'
+      summary: Run a test
 swagger: "2.0"

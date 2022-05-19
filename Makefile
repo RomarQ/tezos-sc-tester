@@ -18,6 +18,7 @@ all: install build
 install: download-tezos-client
 	@go mod tidy
 	@go mod vendor
+	@go install github.com/swaggo/swag/cmd/swag@latest
 
 test:
 	@go test -cover -coverprofile=coverage.out -v ./...
@@ -45,6 +46,17 @@ build-%:
 
 build: install $(foreach bin, $(BIN), bin/$(OS)_$(ARCH)/$(bin).build)
 
+bin/%.build: $(BUILD_DIRS)
+	@sh -c "ARCH=$(ARCH) OS=$(OS) VERSION=$(VERSION) ./scripts/build.sh"
+	@echo "Compilation complete: $</$(shell basename $*)"
+
+build-docs:
+	@${HOME}/go/bin/swag fmt .
+	@${HOME}/go/bin/swag init -d cmd/api --parseDependency
+
+start:
+	@bin/$(OS)_$(ARCH)/$(BIN)
+
 docker-build: build
 	@docker build --tag $(DOCKER_REPO):$(VERSION)_amd64 -f Dockerfile.amd64 .
 	@docker build --tag $(DOCKER_REPO):$(VERSION)_arm64 -f Dockerfile.arm64 .
@@ -52,13 +64,6 @@ docker-build: build
 docker-push: docker-build
 	@docker push $(DOCKER_REPO):$(VERSION)_amd64
 	@docker push $(DOCKER_REPO):$(VERSION)_arm64
-
-bin/%.build: $(BUILD_DIRS)
-	@sh -c "ARCH=$(ARCH) OS=$(OS) VERSION=$(VERSION) ./scripts/build.sh"
-	@echo "Compilation complete: $</$(shell basename $*)"
-
-start:
-	@bin/$(OS)_$(ARCH)/$(BIN)
 
 version:
 	@echo $(VERSION)
