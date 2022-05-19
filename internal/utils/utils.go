@@ -11,16 +11,6 @@ import (
 	"github.com/romarq/visualtez-testing/internal/business/michelson/ast"
 )
 
-// Contains verifies if a list contains a given element
-func Contains[T comparable](list []T, x T) bool {
-	for _, item := range list {
-		if item == x {
-			return true
-		}
-	}
-	return false
-}
-
 // GenerateKey generates a tezos wallet with Ed25519 curve
 func GenerateKey() (tezos.PrivateKey, error) {
 	return tezos.GenerateKey(tezos.KeyTypeEd25519)
@@ -70,14 +60,4 @@ func ExtractFailWithError(output string) (ast.Node, error) {
 	}
 
 	return michelson.ParseMicheline(match[1])
-}
-
-func GetMapKeys[K comparable, V any](m map[K]V) []K {
-	keys := make([]K, 0)
-
-	for k := range m {
-		keys = append(keys, k)
-	}
-
-	return keys
 }
