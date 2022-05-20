@@ -24,9 +24,9 @@ make test
 
 ```sh
 // arm64
-docker run -p 5000:5000 --name testing-api -d ghcr.io/romarq/visualtez-testing:0.0.7_arm64
+docker run -p 5000:5000 --name testing-api -d ghcr.io/romarq/visualtez-testing:0.0.8_arm64
 // amd64
-docker run -p 5000:5000 --name testing-api -d ghcr.io/romarq/visualtez-testing:0.0.7_amd64
+docker run -p 5000:5000 --name testing-api -d ghcr.io/romarq/visualtez-testing:0.0.8_amd64
 ```
 
 ### Configuration
