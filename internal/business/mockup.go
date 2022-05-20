@@ -204,33 +204,6 @@ func (m Mockup) UpdateHeadBlockTimestamp(timestamp string) error {
 	return nil
 }
 
-// GenerateWallet generates a new wallet (uses ed25519 curve)
-func (m Mockup) GenerateWallet(walletName string) error {
-	logger.Debug("[Task #%s] - Generating wallet (%s).", m.TaskID, walletName)
-
-	arguments := composeArguments(
-		TezosClientArgument{
-			Kind:       Mode,
-			Parameters: []string{"mockup"},
-		},
-		TezosClientArgument{
-			Kind:       BaseDirectory,
-			Parameters: []string{m.getTaskDirectory()},
-		},
-		TezosClientArgument{
-			Kind:       Protocol,
-			Parameters: []string{m.getProtocol()},
-		},
-		TezosClientArgument{
-			Kind:       COMMAND,
-			Parameters: []string{"gen", "keys", walletName},
-		},
-	)
-
-	_, err := m.runTezosClient(m.getTezosClientPath(), arguments)
-	return err
-}
-
 func (m Mockup) ImportSecret(privateKey string, walletName string) error {
 	logger.Debug("[Task #%s] - Importing secret key (%s).", m.TaskID, walletName)
 
@@ -522,7 +495,7 @@ func (m Mockup) GetContractStorage(contractName string) (ast.Node, error) {
 	return ast, nil
 }
 
-// Checks if address exists
+// ContainsAddress checks if address exists
 func (m Mockup) ContainsAddress(name string) bool {
 	return m.Addresses[name] != ""
 }
@@ -551,61 +524,9 @@ func (m Mockup) CacheContract(name string, code ast.Node) error {
 	return fmt.Errorf("could not cache contract. michelson is invalid.")
 }
 
-// GetCachedContract
+// GetCachedContract get contract from cache
 func (m Mockup) GetCachedContract(name string) ContractCache {
 	return m.contracts[name]
-}
-
-// ConvertScript converts script format between "michelson" and "json"
-func (m Mockup) ConvertScript(script string, from MichelsonFormat, to MichelsonFormat) (string, error) {
-	arguments := composeArguments(
-		TezosClientArgument{
-			Kind:       Mode,
-			Parameters: []string{"mockup"},
-		},
-		TezosClientArgument{
-			Kind:       BaseDirectory,
-			Parameters: []string{m.getTaskDirectory()},
-		},
-		TezosClientArgument{
-			Kind:       Protocol,
-			Parameters: []string{m.getProtocol()},
-		},
-		TezosClientArgument{
-			Kind: COMMAND,
-			Parameters: []string{
-				"convert", "script", script, "from", string(from), "to", string(to),
-			},
-		},
-	)
-
-	return m.runTezosClient(m.getTezosClientPath(), arguments)
-}
-
-// ConvertData converts data format between "michelson" and "json"
-func (m Mockup) ConvertData(data string, from MichelsonFormat, to MichelsonFormat) (string, error) {
-	arguments := composeArguments(
-		TezosClientArgument{
-			Kind:       Mode,
-			Parameters: []string{"mockup"},
-		},
-		TezosClientArgument{
-			Kind:       BaseDirectory,
-			Parameters: []string{m.getTaskDirectory()},
-		},
-		TezosClientArgument{
-			Kind:       Protocol,
-			Parameters: []string{m.getProtocol()},
-		},
-		TezosClientArgument{
-			Kind: COMMAND,
-			Parameters: []string{
-				"convert", "data", data, "from", string(from), "to", string(to),
-			},
-		},
-	)
-
-	return m.runTezosClient(m.getTezosClientPath(), arguments)
 }
 
 // NormalizeData normalize a data expression against a gicen type

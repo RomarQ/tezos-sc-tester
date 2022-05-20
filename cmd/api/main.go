@@ -58,12 +58,11 @@ func main() {
 		},
 	})
 
-	testingAPI := api.InitTestingAPI(configuration)
-
 	// API Documentation
 	e.GET("/doc/*", echoSwagger.WrapHandler)
 
 	// API Endpoints
+	testingAPI := api.InitTestingAPI(configuration)
 	e.POST("/testing", testingAPI.RunTest, rateLimit)
 
 	// Start REST API Service

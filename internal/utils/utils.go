@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"time"
@@ -31,12 +30,6 @@ func ValidateString(regex string, name string) error {
 		return fmt.Errorf("String (%s) does not match pattern '%s'.", name, regex)
 	}
 	return nil
-}
-
-// PrettifyJSON
-func PrettifyJSON(o interface{}) string {
-	prettyJSON, _ := json.MarshalIndent(o, "", "  ")
-	return string(prettyJSON)
 }
 
 // ParseRFC3339Timestamp parse RFC3339 timestamp

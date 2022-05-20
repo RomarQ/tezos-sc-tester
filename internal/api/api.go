@@ -15,7 +15,7 @@ import (
 	"github.com/romarq/visualtez-testing/internal/logger"
 )
 
-type TestingAPI struct {
+type testingAPI struct {
 	Config config.Config
 }
 
@@ -25,8 +25,8 @@ type testSuiteRequest struct {
 }
 
 // InitTestingAPI initializes the testing API
-func InitTestingAPI(config config.Config) TestingAPI {
-	api := TestingAPI{
+func InitTestingAPI(config config.Config) testingAPI {
+	api := testingAPI{
 		Config: config,
 	}
 	return api
@@ -41,7 +41,7 @@ func InitTestingAPI(config config.Config) TestingAPI {
 // @Success  200      {array}   action.ActionResult  "Success"
 // @Failure  409      {object}  Error.Error          "Fail"
 // @Router   /testing [post]
-func (api *TestingAPI) RunTest(ctx echo.Context) error {
+func (api *testingAPI) RunTest(ctx echo.Context) error {
 	var mockup Mockup.Mockup
 	defer func() {
 		err := recover()
@@ -70,6 +70,7 @@ func (api *TestingAPI) RunTest(ctx echo.Context) error {
 
 	prime, err := rand.Prime(rand.Reader, 64)
 	if err != nil {
+		logger.Debug("could not generate random prime. %s", err.Error())
 		return Error.HttpError(http.StatusInternalServerError, "Something went wrong.")
 	}
 
@@ -79,7 +80,7 @@ func (api *TestingAPI) RunTest(ctx echo.Context) error {
 	// Bootstrap mockup
 	err = mockup.Bootstrap()
 	if err != nil {
-		logger.Debug("Something went wrong: %s", err)
+		logger.Debug("something went wrong. %s", err.Error())
 		return Error.HttpError(http.StatusInternalServerError, "Could not bootstrap test environment.")
 	}
 
