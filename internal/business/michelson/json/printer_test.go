@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/romarq/visualtez-testing/internal/business/michelson/ast"
+	"github.com/romarq/tezos-sc-tester/internal/business/michelson/ast"
 	"github.com/stretchr/testify/assert"
 )
 

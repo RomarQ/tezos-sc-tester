@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/romarq/visualtez-testing/internal/business"
-	"github.com/romarq/visualtez-testing/internal/business/michelson"
-	"github.com/romarq/visualtez-testing/internal/business/michelson/ast"
-	"github.com/romarq/visualtez-testing/internal/business/michelson/micheline"
-	"github.com/romarq/visualtez-testing/internal/logger"
+	"github.com/romarq/tezos-sc-tester/internal/business"
+	"github.com/romarq/tezos-sc-tester/internal/business/michelson"
+	"github.com/romarq/tezos-sc-tester/internal/business/michelson/ast"
+	"github.com/romarq/tezos-sc-tester/internal/business/michelson/micheline"
+	"github.com/romarq/tezos-sc-tester/internal/logger"
 )
 
 type PackDataAction struct {

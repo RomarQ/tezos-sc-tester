@@ -3,7 +3,7 @@ package micheline
 import (
 	"testing"
 
-	"github.com/romarq/visualtez-testing/internal/business/michelson/micheline/token"
+	"github.com/romarq/tezos-sc-tester/internal/business/michelson/micheline/token"
 	"github.com/stretchr/testify/assert"
 )
 

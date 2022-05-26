@@ -3,9 +3,9 @@ package michelson
 import (
 	"encoding/json"
 
-	"github.com/romarq/visualtez-testing/internal/business/michelson/ast"
-	MichelsonJSON "github.com/romarq/visualtez-testing/internal/business/michelson/json"
-	"github.com/romarq/visualtez-testing/internal/business/michelson/micheline"
+	"github.com/romarq/tezos-sc-tester/internal/business/michelson/ast"
+	MichelsonJSON "github.com/romarq/tezos-sc-tester/internal/business/michelson/json"
+	"github.com/romarq/tezos-sc-tester/internal/business/michelson/micheline"
 )
 
 // JSONOfMicheline converts Michelson from "micheline" to "json" format

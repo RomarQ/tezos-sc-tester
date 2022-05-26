@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/romarq/visualtez-testing/internal/business/michelson"
+	"github.com/romarq/tezos-sc-tester/internal/business/michelson"
 	"github.com/stretchr/testify/assert"
 )
 

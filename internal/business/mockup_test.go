@@ -3,8 +3,8 @@ package business
 import (
 	"testing"
 
-	"github.com/romarq/visualtez-testing/internal/config"
-	"github.com/romarq/visualtez-testing/internal/logger"
+	"github.com/romarq/tezos-sc-tester/internal/config"
+	"github.com/romarq/tezos-sc-tester/internal/logger"
 	"github.com/stretchr/testify/assert"
 )
 

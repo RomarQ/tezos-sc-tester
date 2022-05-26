@@ -6,9 +6,9 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/romarq/visualtez-testing/internal/business"
-	"github.com/romarq/visualtez-testing/internal/logger"
-	"github.com/romarq/visualtez-testing/internal/utils"
+	"github.com/romarq/tezos-sc-tester/internal/business"
+	"github.com/romarq/tezos-sc-tester/internal/logger"
+	"github.com/romarq/tezos-sc-tester/internal/utils"
 )
 
 type CreateImplicitAccountAction struct {

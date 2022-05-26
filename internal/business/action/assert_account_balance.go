@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/romarq/visualtez-testing/internal/business"
-	"github.com/romarq/visualtez-testing/internal/utils"
+	"github.com/romarq/tezos-sc-tester/internal/business"
+	"github.com/romarq/tezos-sc-tester/internal/utils"
 )
 
 type AssertAccountBalanceAction struct {

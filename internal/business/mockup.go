@@ -8,10 +8,10 @@ import (
 	"os/exec"
 	"regexp"
 
-	"github.com/romarq/visualtez-testing/internal/business/michelson"
-	"github.com/romarq/visualtez-testing/internal/business/michelson/ast"
-	"github.com/romarq/visualtez-testing/internal/config"
-	"github.com/romarq/visualtez-testing/internal/logger"
+	"github.com/romarq/tezos-sc-tester/internal/business/michelson"
+	"github.com/romarq/tezos-sc-tester/internal/business/michelson/ast"
+	"github.com/romarq/tezos-sc-tester/internal/config"
+	"github.com/romarq/tezos-sc-tester/internal/logger"
 	"github.com/tidwall/sjson"
 )
 

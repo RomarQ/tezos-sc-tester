@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/romarq/visualtez-testing/internal/business/michelson/ast"
-	"github.com/romarq/visualtez-testing/internal/business/michelson/utils"
+	"github.com/romarq/tezos-sc-tester/internal/business/michelson/ast"
+	"github.com/romarq/tezos-sc-tester/internal/business/michelson/utils"
 )
 
 type (

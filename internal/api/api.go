@@ -8,11 +8,11 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	Mockup "github.com/romarq/visualtez-testing/internal/business"
-	"github.com/romarq/visualtez-testing/internal/business/action"
-	"github.com/romarq/visualtez-testing/internal/config"
-	Error "github.com/romarq/visualtez-testing/internal/error"
-	"github.com/romarq/visualtez-testing/internal/logger"
+	Mockup "github.com/romarq/tezos-sc-tester/internal/business"
+	"github.com/romarq/tezos-sc-tester/internal/business/action"
+	"github.com/romarq/tezos-sc-tester/internal/config"
+	Error "github.com/romarq/tezos-sc-tester/internal/error"
+	"github.com/romarq/tezos-sc-tester/internal/logger"
 )
 
 type testingAPI struct {

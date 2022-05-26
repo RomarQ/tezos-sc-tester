@@ -12,11 +12,11 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
 
-	"github.com/romarq/visualtez-testing/internal/api"
-	"github.com/romarq/visualtez-testing/internal/config"
-	"github.com/romarq/visualtez-testing/internal/logger"
+	"github.com/romarq/tezos-sc-tester/internal/api"
+	"github.com/romarq/tezos-sc-tester/internal/config"
+	"github.com/romarq/tezos-sc-tester/internal/logger"
 
-	_ "github.com/romarq/visualtez-testing/docs"
+	_ "github.com/romarq/tezos-sc-tester/docs"
 )
 
 var VERSION = "" // Updated with "-ldflags" during build

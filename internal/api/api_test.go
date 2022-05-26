@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	"github.com/romarq/visualtez-testing/internal/business/action"
-	"github.com/romarq/visualtez-testing/internal/config"
-	"github.com/romarq/visualtez-testing/internal/logger"
+	"github.com/romarq/tezos-sc-tester/internal/business/action"
+	"github.com/romarq/tezos-sc-tester/internal/config"
+	"github.com/romarq/tezos-sc-tester/internal/logger"
 	"github.com/stretchr/testify/assert"
 )
 

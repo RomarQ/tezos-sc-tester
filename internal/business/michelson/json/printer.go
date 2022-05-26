@@ -3,7 +3,7 @@ package json
 import (
 	"encoding/json"
 
-	"github.com/romarq/visualtez-testing/internal/business/michelson/ast"
+	"github.com/romarq/tezos-sc-tester/internal/business/michelson/ast"
 )
 
 // Print prints the JSON representation of Michelson

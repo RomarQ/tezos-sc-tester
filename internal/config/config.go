@@ -6,7 +6,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/romarq/visualtez-testing/internal/logger"
+	"github.com/romarq/tezos-sc-tester/internal/logger"
 	"gopkg.in/yaml.v2"
 )
 

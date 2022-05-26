@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/romarq/visualtez-testing/internal/business"
+	"github.com/romarq/tezos-sc-tester/internal/business"
 	"github.com/stretchr/testify/assert"
 )
 

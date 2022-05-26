@@ -6,5 +6,5 @@ tezos:
   reveal_fee: 1000
   originator: "bootstrap2"
 log:
-  location: visualtez-testing.log
+  location: tezos-sc-tester.log
   level: debug

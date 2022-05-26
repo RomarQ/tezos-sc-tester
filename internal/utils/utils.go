@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"blockwatch.cc/tzgo/tezos"
-	"github.com/romarq/visualtez-testing/internal/business/michelson"
-	"github.com/romarq/visualtez-testing/internal/business/michelson/ast"
+	"github.com/romarq/tezos-sc-tester/internal/business/michelson"
+	"github.com/romarq/tezos-sc-tester/internal/business/michelson/ast"
 )
 
 // GenerateKey generates a tezos wallet with Ed25519 curve

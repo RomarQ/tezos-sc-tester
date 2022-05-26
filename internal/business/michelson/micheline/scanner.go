@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"unicode"
 
-	"github.com/romarq/visualtez-testing/internal/business/michelson/micheline/token"
+	"github.com/romarq/tezos-sc-tester/internal/business/michelson/micheline/token"
 )
 
 type (

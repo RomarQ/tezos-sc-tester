@@ -1,4 +1,4 @@
-APP_NAME := visualtez-testing
+APP_NAME := tezos-sc-tester
 
 BIN := api
 
@@ -8,7 +8,7 @@ ALL_PLATFORMS := linux/amd64 linux/arm64
 
 OS := $(if $(GOOS),$(GOOS),$(shell go env GOOS))
 ARCH := $(if $(GOARCH),$(GOARCH),$(shell go env GOARCH))
-DOCKER_REPO := "ghcr.io/romarq/visualtez-testing"
+DOCKER_REPO := "ghcr.io/romarq/tezos-sc-tester"
 
 AMD64_IMAGE ?= alpine:3.15.4
 ARM64_IMAGE ?= arm64v8/alpine:3.15.4

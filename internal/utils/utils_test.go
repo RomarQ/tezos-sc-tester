@@ -3,7 +3,7 @@ package utils_test
 import (
 	"testing"
 
-	"github.com/romarq/visualtez-testing/internal/utils"
+	"github.com/romarq/tezos-sc-tester/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/romarq/visualtez-testing/internal/business"
-	Error "github.com/romarq/visualtez-testing/internal/error"
+	"github.com/romarq/tezos-sc-tester/internal/business"
+	Error "github.com/romarq/tezos-sc-tester/internal/error"
 )
 
 type (

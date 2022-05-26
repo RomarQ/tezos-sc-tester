@@ -1,4 +1,4 @@
-module github.com/romarq/visualtez-testing
+module github.com/romarq/tezos-sc-tester
 
 go 1.18
 
@@ -15,6 +15,7 @@ require (
 
 require (
 	github.com/BurntSushi/toml v1.1.0 // indirect
+	github.com/kr/pretty v0.2.1 // indirect
 	github.com/tidwall/gjson v1.14.1 // indirect
 )
 
@@ -29,7 +30,6 @@ require (
 	github.com/go-openapi/swag v0.21.1 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/josharian/intern v1.0.0 // indirect
-	github.com/kr/pretty v0.2.1 // indirect
 	github.com/labstack/gommon v0.3.1 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.11 // indirect
