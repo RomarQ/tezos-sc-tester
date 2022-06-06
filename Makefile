@@ -2,7 +2,7 @@ APP_NAME := tezos-sc-tester
 
 BIN := api
 
-VERSION := 0.0.8
+VERSION := 0.0.9
 
 ALL_PLATFORMS := linux/amd64 linux/arm64
 
@@ -26,8 +26,8 @@ test:
 download-tezos-client: .download-tezos-client
 .download-tezos-client:
 	@mkdir -p tezos-bin/amd64 tezos-bin/arm64
-	@wget -O tezos-bin/amd64/tezos-client https://gitlab.com/tezos/tezos/-/jobs/2376802446/artifacts/raw/tezos-binaries/x86_64/tezos-client
-	@wget -O tezos-bin/arm64/tezos-client https://gitlab.com/tezos/tezos/-/jobs/2376802447/artifacts/raw/tezos-binaries/arm64/tezos-client
+	@wget -O tezos-bin/amd64/tezos-client https://gitlab.com/tezos/tezos/-/jobs/2417946116/artifacts/raw/tezos-binaries/x86_64/tezos-client
+	@wget -O tezos-bin/arm64/tezos-client https://gitlab.com/tezos/tezos/-/jobs/2417946118/artifacts/raw/tezos-binaries/arm64/tezos-client
 	@chmod +x tezos-bin/amd64/tezos-client tezos-bin/arm64/tezos-client
 	@touch .download-tezos-client
 
