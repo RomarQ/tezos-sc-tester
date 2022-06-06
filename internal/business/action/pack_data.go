@@ -41,14 +41,14 @@ func (action *PackDataAction) Unmarshal(ac Action) error {
 	action.Data, err = michelson.ParseJSON(action.json.Payload.Data)
 	if err != nil {
 		logger.Debug("%+v", action.json.Payload.Data)
-		return fmt.Errorf(`invalid michelson value.`)
+		return fmt.Errorf("invalid michelson value.")
 	}
 
 	// "type" field
 	action.Type, err = michelson.ParseJSON(action.json.Payload.Type)
 	if err != nil {
 		logger.Debug("%+v", action.json.Payload.Type)
-		return fmt.Errorf(`invalid michelson type.`)
+		return fmt.Errorf("invalid michelson type.")
 	}
 
 	return nil

@@ -55,14 +55,14 @@ func (action *OriginateContractAction) Unmarshal(ac Action) error {
 	action.Code, err = michelson.ParseJSON(action.json.Payload.Code)
 	if err != nil {
 		logger.Debug("%+v", action.json.Payload.Code)
-		return fmt.Errorf(`invalid code.`)
+		return fmt.Errorf("invalid code.")
 	}
 
 	// "storage" field
 	action.Storage, err = michelson.ParseJSON(action.json.Payload.Storage)
 	if err != nil {
 		logger.Debug("%+v", action.json.Payload.Storage)
-		return fmt.Errorf(`invalid storage.`)
+		return fmt.Errorf("invalid storage.")
 	}
 
 	return nil

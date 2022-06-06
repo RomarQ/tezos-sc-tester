@@ -2,6 +2,7 @@ package business
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"math/big"
 	"os"
@@ -582,7 +583,7 @@ func (m Mockup) runTezosClient(command string, args []string) (string, error) {
 		if errBuffer.Len() > 0 {
 			msg := errBuffer.String()
 			logger.Error("Got the following error:\n\n%s\nwhen executing command: %s.", msg, cmd.Args)
-			err = fmt.Errorf(msg)
+			err = errors.New(msg)
 			return "", err
 		}
 		return "", err
@@ -590,7 +591,7 @@ func (m Mockup) runTezosClient(command string, args []string) (string, error) {
 
 	output := outBuffer.String()
 	if len(output) > 0 {
-		logger.Debug("Got the following output:\n\n%s\nwhen executing command: %s.", string(output), cmd.Args)
+		logger.Debug("Got the following output:\n\n%s\nwhen executing command: %s.", output, cmd.Args)
 	}
 
 	return output, nil

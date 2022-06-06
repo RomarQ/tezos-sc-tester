@@ -1,6 +1,7 @@
 package micheline
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -60,11 +61,11 @@ func (p *Parser) Error() error {
 	if !p.HasErrors() {
 		return nil
 	}
-	errors := make([]string, len(p.scanner.errors))
+	_errors := make([]string, len(p.scanner.errors))
 	for _, err := range p.scanner.errors {
-		errors = append(errors, err.Message)
+		_errors = append(_errors, err.Message)
 	}
-	return fmt.Errorf(strings.Join(errors, ";\n"))
+	return errors.New(strings.Join(_errors, ";\n"))
 }
 
 func (p *Parser) next() {

@@ -2,6 +2,7 @@ package json
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -16,7 +17,7 @@ type Parser struct {
 func (p *Parser) Parse(raw []byte) (node ast.Node, err error) {
 	defer func() {
 		if len(p.errors) > 0 {
-			err = fmt.Errorf(strings.Join(p.errors, ";\n"))
+			err = errors.New(strings.Join(p.errors, ";\n"))
 		}
 	}()
 

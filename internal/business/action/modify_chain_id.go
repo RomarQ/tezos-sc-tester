@@ -60,7 +60,7 @@ func (action ModifyChainIdAction) validate() error {
 	if action.json.Payload.ChainID == "" {
 		missingFields = append(missingFields, "chain_id")
 	} else if !utils.ValidateChainID(action.json.Payload.ChainID) {
-		return fmt.Errorf(`"chain_id" is invalid: %s`, action.json.Payload.ChainID)
+		return fmt.Errorf("'chain_id' is invalid: %s", action.json.Payload.ChainID)
 	}
 
 	if len(missingFields) > 0 {

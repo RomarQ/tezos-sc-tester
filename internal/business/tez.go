@@ -25,7 +25,7 @@ func TezOfFloat(value *big.Float) Tez {
 func TezOfString(value string) (t Tez, err error) {
 	v, ok := new(big.Float).SetString(value)
 	if !ok {
-		err = fmt.Errorf(`invalid tez value: %s.`, value)
+		err = fmt.Errorf("invalid tez value: %s.", value)
 	}
 	t.v = v
 	return
@@ -42,7 +42,7 @@ func MutezOfFloat(value *big.Float) Mutez {
 func MutezOfString(value string) (t Mutez, err error) {
 	v, ok := new(big.Float).SetString(value)
 	if !ok {
-		err = fmt.Errorf(`invalid mutez value: %s.`, value)
+		err = fmt.Errorf("invalid mutez value: %s.", value)
 	}
 	t.v = v
 	return

@@ -63,7 +63,7 @@ func (action *CallContractAction) Unmarshal(ac Action) error {
 	if action.json.Payload.Timestamp != "" {
 		timestamp, err := utils.ParseRFC3339Timestamp(action.json.Payload.Timestamp)
 		if err != nil {
-			return fmt.Errorf(`field "timestamp" must use RFC3339 format. %s`, err)
+			return fmt.Errorf("field 'timestamp' must use RFC3339 format. %s", err)
 		}
 		action.Timestamp = &timestamp
 	}
@@ -82,7 +82,7 @@ func (action *CallContractAction) Unmarshal(ac Action) error {
 	action.Parameter, err = michelson.ParseJSON(action.json.Payload.Parameter)
 	if err != nil {
 		logger.Debug("%+v", action.json.Payload.Parameter)
-		return fmt.Errorf(`invalid 'parameter'. %s`, err)
+		return fmt.Errorf("invalid 'parameter'. %s", err)
 	}
 
 	// "expect_failwith" field
@@ -90,7 +90,7 @@ func (action *CallContractAction) Unmarshal(ac Action) error {
 		action.ExpectFailwith, err = michelson.ParseJSON(action.json.Payload.ExpectFailwith)
 		if err != nil {
 			logger.Debug("%+v", action.json.Payload.ExpectFailwith)
-			return fmt.Errorf(`invalid 'expect_failwith'. %s`, err)
+			return fmt.Errorf("invalid 'expect_failwith'. %s", err)
 		}
 	}
 
