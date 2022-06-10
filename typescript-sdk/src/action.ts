@@ -6,6 +6,8 @@ export enum ActionKind {
     AssertAccountBalance = 'assert_account_balance',
     AssertContractStorage = 'assert_contract_storage',
     ModifyChainID = 'modify_chain_id',
+    ModifyBlockLevel = 'modify_block_level',
+    ModifyBlockTimestamp = 'modify_block_timestamp',
     PackData = 'pack_data',
 }
 
@@ -22,6 +24,8 @@ export type IAction =
     | IAssertAccountBalanceAction
     | IAssertContractStorageAction
     | IModifyChainIDAction
+    | IModifyBlockLevelAction
+    | IModifyBlockTimestampAction
     | IPackDataAction;
 
 export interface IActionResult {
@@ -101,6 +105,25 @@ export interface IModifyChainIDPayload {
 export interface IModifyChainIDAction {
     kind: ActionKind.ModifyChainID;
     payload: IModifyChainIDPayload;
+}
+
+// modify_block_level
+export interface IModifyBlockLevelPayload {
+    level: number;
+}
+export interface IModifyBlockLevelAction {
+    kind: ActionKind.ModifyBlockLevel;
+    payload: IModifyBlockLevelPayload;
+}
+
+// modify_block_timestamp
+
+export interface IModifyBlockTimestampPayload {
+    timestamp: string;
+}
+export interface IModifyBlockTimestampAction {
+    kind: ActionKind.ModifyBlockTimestamp;
+    payload: IModifyBlockTimestampPayload;
 }
 
 // pack_data
