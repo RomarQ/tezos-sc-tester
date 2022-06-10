@@ -57,6 +57,10 @@ func GetActions(rawActions []Action) ([]IAction, error) {
 			action = &OriginateContractAction{}
 		case CreateImplicitAccount:
 			action = &CreateImplicitAccountAction{}
+		case ModifyBlockLevel:
+			action = &ModifyBlockLevelAction{}
+		case ModifyBlockTimestamp:
+			action = &ModifyBlockTimestampAction{}
 		case ModifyChainID:
 			action = &ModifyChainIdAction{}
 		case PackData:

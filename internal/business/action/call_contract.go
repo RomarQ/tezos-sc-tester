@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/romarq/tezos-sc-tester/internal/business"
 	"github.com/romarq/tezos-sc-tester/internal/business/michelson"
@@ -21,8 +20,6 @@ type CallContractAction struct {
 		Payload struct {
 			Recipient      string          `json:"recipient"`
 			Sender         string          `json:"sender"`
-			Level          int32           `json:"level"`
-			Timestamp      string          `json:"timestamp"`
 			Entrypoint     string          `json:"entrypoint"`
 			Amount         string          `json:"amount"`
 			Parameter      json.RawMessage `json:"parameter"`
@@ -31,8 +28,6 @@ type CallContractAction struct {
 	}
 	Recipient      string
 	Sender         string
-	Level          int32
-	Timestamp      *time.Time
 	Entrypoint     string
 	Amount         business.Mutez
 	Parameter      ast.Node
@@ -54,19 +49,6 @@ func (action *CallContractAction) Unmarshal(ac Action) error {
 
 	// "recipient" field
 	action.Recipient = action.json.Payload.Recipient
-	// "level" field
-	action.Level = action.json.Payload.Level
-	if action.Level == 0 {
-		action.Level = 1
-	}
-	// "timestamp" field
-	if action.json.Payload.Timestamp != "" {
-		timestamp, err := utils.ParseRFC3339Timestamp(action.json.Payload.Timestamp)
-		if err != nil {
-			return fmt.Errorf("field 'timestamp' must use RFC3339 format. %s", err)
-		}
-		action.Timestamp = &timestamp
-	}
 	// "sender" field
 	action.Sender = action.json.Payload.Sender
 	// "entrypoint" field
@@ -104,27 +86,9 @@ func (action CallContractAction) Action() interface{} {
 
 // Perform the action
 func (action CallContractAction) Run(mockup business.Mockup) (interface{}, bool) {
-	// Update the level of the head block
-	// The transfer operation will create a new block
-	err := mockup.UpdateHeadBlockLevel(action.Level - 1)
-	if err != nil {
-		return err, false
-	}
-
-	if action.Timestamp != nil {
-		// Update the timestamp of the head block
-		// Subtract one second because the next block will increment
-		// the timestamp by one second
-		timestamp := action.Timestamp.Add(-time.Second)
-		err := mockup.UpdateHeadBlockTimestamp(utils.FormatRFC3339Timestamp(timestamp))
-		if err != nil {
-			return err, false
-		}
-	}
-
 	parameterMicheline := replaceBigMaps(micheline.Print(action.Parameter, ""))
 	parameterMicheline = expandPlaceholders(mockup, parameterMicheline)
-	err = mockup.Transfer(business.CallContractArgument{
+	err := mockup.Transfer(business.CallContractArgument{
 		Recipient:  action.Recipient,
 		Source:     action.Sender,
 		Entrypoint: action.Entrypoint,
@@ -193,10 +157,6 @@ func (action CallContractAction) validate() error {
 	}
 	if action.json.Payload.Parameter == nil {
 		missingFields = append(missingFields, "parameter")
-	}
-
-	if action.Level > 99999999 {
-		return fmt.Errorf("The block level cannot be higher than 99999999.")
 	}
 
 	if len(missingFields) > 0 {
