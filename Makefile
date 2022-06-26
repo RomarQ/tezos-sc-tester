@@ -2,7 +2,7 @@ APP_NAME := tezos-sc-tester
 
 BIN := api
 
-VERSION := 0.0.9
+VERSION := 0.1.0
 
 ALL_PLATFORMS := linux/amd64 linux/arm64
 

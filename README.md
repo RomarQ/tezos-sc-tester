@@ -24,9 +24,9 @@ make test
 
 ```sh
 // arm64
-docker run -p 5000:5000 --name testing-api -d ghcr.io/romarq/tezos-sc-tester:0.0.9_arm64
+docker run -p 5000:5000 --name testing-api -d ghcr.io/romarq/tezos-sc-tester:0.1.0_arm64
 // amd64
-docker run -p 5000:5000 --name testing-api -d ghcr.io/romarq/tezos-sc-tester:0.0.9_amd64
+docker run -p 5000:5000 --name testing-api -d ghcr.io/romarq/tezos-sc-tester:0.1.0_amd64
 ```
 
 ### Configuration
